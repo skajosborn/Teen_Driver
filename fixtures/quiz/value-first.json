@@ -1,0 +1,52 @@
+{
+  "description": "Budget-conscious commuter seeking core connectivity",
+  "preferences": [
+    {
+      "questionId": "budget",
+      "label": "Budget & financing comfort zone",
+      "priority": 5,
+      "type": "single",
+      "selectedValues": ["value"]
+    },
+    {
+      "questionId": "safety",
+      "label": "Safety & crash-test expectations",
+      "priority": 3,
+      "type": "single",
+      "selectedValues": ["baseline-safety"]
+    },
+    {
+      "questionId": "usage",
+      "label": "How your teen will use the car",
+      "priority": 4,
+      "type": "single",
+      "selectedValues": ["daily-commute"]
+    },
+    {
+      "questionId": "tech",
+      "label": "Tech & convenience priorities",
+      "priority": 3,
+      "type": "single",
+      "selectedValues": ["core-connectivity"]
+    },
+    {
+      "questionId": "extras",
+      "label": "Unique preferences & feel-good factors",
+      "priority": 2,
+      "type": "multi",
+      "selectedValues": ["bright-color"]
+    },
+    {
+      "questionId": "timeline",
+      "label": "Timeline & readiness",
+      "priority": 4,
+      "type": "single",
+      "selectedValues": ["two-weeks"]
+    }
+  ],
+  "metadata": {
+    "fixture": "value-first",
+    "submittedBy": "fixtures"
+  }
+}
+

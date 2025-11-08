@@ -1,0 +1,59 @@
+{
+  "description": "Safety-focused sedan under $30k with monitoring tech",
+  "preferences": [
+    {
+      "questionId": "budget",
+      "label": "Budget & financing comfort zone",
+      "priority": 4,
+      "type": "single",
+      "selectedValues": ["cpo-balance"]
+    },
+    {
+      "questionId": "safety",
+      "label": "Safety & crash-test expectations",
+      "priority": 5,
+      "type": "single",
+      "selectedValues": ["max-safety"]
+    },
+    {
+      "questionId": "usage",
+      "label": "How your teen will use the car",
+      "priority": 3,
+      "type": "single",
+      "selectedValues": ["shared-family"]
+    },
+    {
+      "questionId": "tech",
+      "label": "Tech & convenience priorities",
+      "priority": 3,
+      "type": "single",
+      "selectedValues": ["monitoring-suite"]
+    },
+    {
+      "questionId": "timeline",
+      "label": "Timeline & readiness",
+      "priority": 2,
+      "type": "single",
+      "selectedValues": ["month"]
+    },
+    {
+      "questionId": "extras",
+      "label": "Unique preferences & feel-good factors",
+      "priority": 2,
+      "type": "multi",
+      "selectedValues": ["higher-seating", "bright-color"]
+    },
+    {
+      "questionId": "notes",
+      "label": "Anything else your concierge should know?",
+      "priority": 3,
+      "type": "text",
+      "notes": "Teen will be commuting on snowy roads; strong AWD preferred."
+    }
+  ],
+  "metadata": {
+    "fixture": "safety-focused",
+    "submittedBy": "fixtures"
+  }
+}
+

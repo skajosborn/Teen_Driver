@@ -621,6 +621,19 @@ export default function QuizPage() {
   }, [structuredPreferences]);
 
   const hasSummary = summarizedEntries.length > 0;
+  const hasRecommendationsReady = agentStatus === "success" && recommendations.length > 0;
+  const agentHelperText =
+    agentStatus === "loading"
+      ? "Gathering live inventory, insurance data, and negotiation insights…"
+      : hasRecommendationsReady
+      ? "Here’s your tailored shortlist from the Teen Driver concierge."
+      : "We’ll hand this payload to your AI concierge and return a tailored shortlist.";
+  const agentButtonLabel =
+    agentStatus === "loading"
+      ? "Contacting agent..."
+      : hasRecommendationsReady
+      ? "Regenerate shortlist"
+      : "Generate shortlist";
 
   const handleSendToAgent = async () => {
     if (!hasSummary || agentStatus === "loading") {
@@ -961,10 +974,7 @@ export default function QuizPage() {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold">Send to Teen Driver agent</h2>
-                  <p className="text-sm text-slate-200/80">
-                    We’ll hand this payload to your AI concierge and return a tailored
-                    shortlist.
-                  </p>
+                  <p className="text-sm text-slate-200/80">{agentHelperText}</p>
                 </div>
                 <button
                   type="button"
@@ -972,7 +982,7 @@ export default function QuizPage() {
                   disabled={!hasSummary || agentStatus === "loading"}
                   className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/40 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
                 >
-                  {agentStatus === "loading" ? "Contacting agent..." : "Generate shortlist"}
+                  {agentButtonLabel}
                 </button>
               </div>
 
@@ -982,11 +992,7 @@ export default function QuizPage() {
                 </p>
               ) : null}
 
-              {agentStatus === "loading" ? (
-                <p className="text-sm text-slate-200/80">
-                  Gathering live inventory, insurance data, and negotiation insights…
-                </p>
-              ) : agentStatus === "success" && recommendations.length > 0 ? (
+              {agentStatus === "loading" ? null : hasRecommendationsReady ? (
                 <div className="space-y-6">
                   <div className="grid gap-5 lg:grid-cols-2">
                     {recommendations.map((rec, index) => (

@@ -1,0 +1,328 @@
+[
+  {
+    "id": "honda-civic-2023",
+    "make": "Honda",
+    "model": "Civic",
+    "trim": "EX",
+    "years": [2022, 2023],
+    "bodyStyle": "sedan",
+    "drivetrain": "FWD",
+    "msrpRange": [25500, 29500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 33, "highway": 42 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Honda Sensing suite with AEB, ACC, lane-keep",
+        "Excellent front crash prevention ratings"
+      ]
+    },
+    "techHighlights": [
+      "Apple CarPlay / Android Auto (wireless)",
+      "Blind-spot monitoring with cross-traffic alert",
+      "Teen driver monitoring via HondaLink"
+    ],
+    "teenFriendlyFactors": [
+      "Predictable handling builds teen confidence",
+      "Low running costs and strong resale value",
+      "Comfortable enough to share across the family"
+    ],
+    "maintenanceNotes": ["Recommend 2-year/24k extended coverage for extra peace of mind"],
+    "fitTags": ["daily-commute", "shared-family"],
+    "extrasTags": ["eco-conscious"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/honda/civic-4-door-sedan/2023"
+      },
+      {
+        "type": "Manufacturer",
+        "url": "https://automobiles.honda.com/civic-sedan"
+      }
+    ],
+    "lastReviewed": "2024-11-01"
+  },
+  {
+    "id": "toyota-camry-2023",
+    "make": "Toyota",
+    "model": "Camry",
+    "trim": "SE AWD",
+    "years": [2021, 2022, 2023],
+    "bodyStyle": "sedan",
+    "drivetrain": "AWD",
+    "msrpRange": [29500, 34500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 25, "highway": 34 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Toyota Safety Sense 2.5+ standard",
+        "Strong side-impact performance"
+      ]
+    },
+    "techHighlights": [
+      "Adaptive cruise with lane tracing assist",
+      "Available 360° camera and parking sensors",
+      "Cloud-based navigation with live traffic"
+    ],
+    "teenFriendlyFactors": [
+      "All-wheel drive confidence in poor weather",
+      "Roomy interior for growing teens",
+      "High long-term reliability ratings"
+    ],
+    "maintenanceNotes": ["Watch for higher tire costs on AWD variant"],
+    "fitTags": ["daily-commute", "shared-family"],
+    "extrasTags": ["higher-seating", "bright-color"],
+    "sources": [
+      { "type": "IIHS", "url": "https://www.iihs.org/ratings/vehicle/toyota/camry-4-door-sedan/2023" },
+      {
+        "type": "Manufacturer",
+        "url": "https://www.toyota.com/camry/"
+      }
+    ],
+    "lastReviewed": "2024-10-15"
+  },
+  {
+    "id": "subaru-forester-2023",
+    "make": "Subaru",
+    "model": "Forester",
+    "trim": "Premium",
+    "years": [2020, 2021, 2022, 2023],
+    "bodyStyle": "suv",
+    "drivetrain": "AWD",
+    "msrpRange": [29500, 35500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 26, "highway": 33 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "EyeSight driver assist with stereo cameras",
+        "Excellent rollover prevention scores"
+      ]
+    },
+    "techHighlights": [
+      "DriverFocus distraction mitigation available",
+      "Large windows for visibility",
+      "Standard AWD for all trims"
+    ],
+    "teenFriendlyFactors": [
+      "Commanding seating position",
+      "Ample cargo for sports gear and weekend trips",
+      "Confidence in snow/rain"
+    ],
+    "maintenanceNotes": ["Ensure EyeSight camera recalibration after windshield replacement"],
+    "fitTags": ["shared-family", "weekend-adventure"],
+    "extrasTags": ["higher-seating", "eco-conscious"],
+    "sources": [
+      { "type": "IIHS", "url": "https://www.iihs.org/ratings/vehicle/subaru/forester-4-door-suv/2023" },
+      {
+        "type": "Manufacturer",
+        "url": "https://www.subaru.com/vehicles/forester/index.html"
+      }
+    ],
+    "lastReviewed": "2024-11-02"
+  },
+  {
+    "id": "mazda-cx5-2023",
+    "make": "Mazda",
+    "model": "CX-5",
+    "trim": "Preferred",
+    "years": [2022, 2023],
+    "bodyStyle": "suv",
+    "drivetrain": "AWD",
+    "msrpRange": [29900, 35500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 24, "highway": 30 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "High LED adaptive headlight ratings",
+        "Smart brake support with rear AEB"
+      ]
+    },
+    "techHighlights": [
+      "Heads-up display on higher trims",
+      "Premium interior easy to keep clean",
+      "Intuitive infotainment with CarPlay/Android Auto"
+    ],
+    "teenFriendlyFactors": [
+      "Sharp handling keeps teens engaged but controlled",
+      "All-wheel drive standard for confidence",
+      "Smaller footprint than most SUVs for parking"
+    ],
+    "maintenanceNotes": ["Recommend ceramic coating for light-colored interiors"],
+    "fitTags": ["daily-commute", "shared-family", "weekend-adventure"],
+    "extrasTags": ["higher-seating", "bright-color"],
+    "sources": [
+      { "type": "IIHS", "url": "https://www.iihs.org/ratings/vehicle/mazda/cx-5-4-door-suv/2023" },
+      {
+        "type": "Manufacturer",
+        "url": "https://www.mazdausa.com/vehicles/cx-5"
+      }
+    ],
+    "lastReviewed": "2024-10-30"
+  },
+  {
+    "id": "hyundai-kona-2023",
+    "make": "Hyundai",
+    "model": "Kona",
+    "trim": "SEL AWD",
+    "years": [2021, 2022, 2023],
+    "bodyStyle": "crossover",
+    "drivetrain": "AWD",
+    "msrpRange": [25500, 30500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 28, "highway": 32 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Forward collision avoidance with pedestrian detection",
+        "Safe Exit Warning for street parking"
+      ]
+    },
+    "techHighlights": [
+      "Digital key on higher trims",
+      "Wireless device charging",
+      "Bluelink app for remote lock/monitoring"
+    ],
+    "teenFriendlyFactors": [
+      "Compact size for city parking",
+      "Vibrant color options improve visibility",
+      "Years of Hyundai warranty coverage"
+    ],
+    "maintenanceNotes": ["Schedule AWD differential service at 45k miles for longevity"],
+    "fitTags": ["daily-commute", "weekend-adventure"],
+    "extrasTags": ["bright-color", "higher-seating"],
+    "sources": [
+      { "type": "IIHS", "url": "https://www.iihs.org/ratings/vehicle/hyundai/kona-4-door-suv/2023" },
+      {
+        "type": "Manufacturer",
+        "url": "https://www.hyundaiusa.com/us/en/vehicles/kona"
+      }
+    ],
+    "lastReviewed": "2024-11-03"
+  },
+  {
+    "id": "chevrolet-bolt-ev-2023",
+    "make": "Chevrolet",
+    "model": "Bolt EV",
+    "trim": "2LT",
+    "years": [2022, 2023],
+    "bodyStyle": "hatchback",
+    "drivetrain": "FWD",
+    "msrpRange": [27500, 32500],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 120, "highway": 104 },
+    "safety": {
+      "iihsTopSafetyPick": false,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "HD surround vision for parking",
+        "10 airbags standard"
+      ]
+    },
+    "techHighlights": [
+      "Super Cruise available (hands-free highway assist)",
+      "11.5 kW onboard charger for faster home charging",
+      "Teen Driver mode with speed limiter"
+    ],
+    "teenFriendlyFactors": [
+      "Instant torque yet limited top speed keeps things manageable",
+      "Low operating cost (home charging)",
+      "Bright exterior options increase visibility"
+    ],
+    "maintenanceNotes": ["Ensure battery recall campaign completed, monitor for software updates"],
+    "fitTags": ["daily-commute", "eco-conscious"],
+    "extrasTags": ["bright-color"],
+    "sources": [
+      {
+        "type": "NHTSA",
+        "url": "https://www.nhtsa.gov/vehicle/2023/CHEVROLET/BOLT%252520EV/5%252520HB/FWD"
+      },
+      { "type": "Manufacturer", "url": "https://www.chevrolet.com/electric/bolt-ev" }
+    ],
+    "lastReviewed": "2024-10-20"
+  },
+  {
+    "id": "ford-maverick-hybrid-2023",
+    "make": "Ford",
+    "model": "Maverick",
+    "trim": "XLT Hybrid",
+    "years": [2022, 2023],
+    "bodyStyle": "pickup",
+    "drivetrain": "FWD",
+    "msrpRange": [28500, 33500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 42, "highway": 33 },
+    "safety": {
+      "iihsTopSafetyPick": false,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Co-Pilot360 with lane-keeping and blind-spot cross traffic",
+        "Strong crash cage despite compact size"
+      ]
+    },
+    "techHighlights": [
+      "Built-in bed outlets and modular cargo system",
+      "SYNC 3 infotainment with CarPlay/Android Auto",
+      "Pre-collision assist with emergency braking"
+    ],
+    "teenFriendlyFactors": [
+      "Small pickup footprint keeps maneuvering manageable",
+      "Hybrid efficiency beats most trucks",
+      "Flexible bed for hobbies, DIY projects, sports gear"
+    ],
+    "maintenanceNotes": ["Hybrid system covered by 8-year/100k mile warranty"],
+    "fitTags": ["weekend-adventure", "shared-family"],
+    "extrasTags": ["american-made", "higher-seating"],
+    "sources": [
+      { "type": "NHTSA", "url": "https://www.nhtsa.gov/vehicle/2023/FORD/MAVERICK%252520FWD/PU" },
+      { "type": "Manufacturer", "url": "https://www.ford.com/trucks/maverick/" }
+    ],
+    "lastReviewed": "2024-11-05"
+  },
+  {
+    "id": "kia-ev6-2023",
+    "make": "Kia",
+    "model": "EV6",
+    "trim": "Wind RWD",
+    "years": [2022, 2023],
+    "bodyStyle": "crossover",
+    "drivetrain": "RWD",
+    "msrpRange": [42500, 48500],
+    "insuranceTier": "high",
+    "fuelEconomy": { "city": 134, "highway": 101 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "High scores in small overlap crash tests",
+        "Navigation-based smart cruise control"
+      ]
+    },
+    "techHighlights": [
+      "800V charging architecture (10-80% in ~18 minutes)",
+      "Vehicle-to-load power delivery (camping, tailgates)",
+      "Augmented reality head-up display"
+    ],
+    "teenFriendlyFactors": [
+      "Advanced tech keeps teens engaged safely",
+      "Long-range EV reduces fuel stops",
+      "Excellent stability control prevents oversteer"
+    ],
+    "maintenanceNotes": ["Monitor tire wear from high torque; recommend rotation every 5k miles"],
+    "fitTags": ["weekend-adventure", "eco-conscious"],
+    "extrasTags": ["bright-color"],
+    "sources": [
+      { "type": "IIHS", "url": "https://www.iihs.org/ratings/vehicle/kia/ev6-4-door-suv/2023" },
+      { "type": "Manufacturer", "url": "https://www.kia.com/us/en/ev6" }
+    ],
+    "lastReviewed": "2024-11-04"
+  }
+]
+

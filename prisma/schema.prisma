@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vehicle {
+  id                    String              @id
+  make                  String
+  model                 String
+  trim                  String?
+  years                 Int[]
+  bodyStyle             BodyStyle
+  drivetrain            Drivetrain
+  msrpMin               Int
+  msrpMax               Int
+  insuranceTier         InsuranceTier
+  fuelEconomyCity       Int
+  fuelEconomyHighway    Int
+  safetyIihsTopSafetyPick Boolean
+  safetyNhtsaOverall    Int?
+  safetyNotableFeatures String[]
+  techHighlights        String[]
+  teenFriendlyFactors   String[]
+  maintenanceNotes      String[]
+  fitTags               FitTag[]
+  extrasTags            ExtrasTag[]
+  sources               VehicleSource[]
+  lastReviewed          DateTime
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+model VehicleSource {
+  id        Int      @id @default(autoincrement())
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId String
+  type      String
+  url       String
+
+  @@index([vehicleId])
+}
+
+enum BodyStyle {
+  SEDAN
+  SUV
+  CROSSOVER
+  HATCHBACK
+  PICKUP
+}
+
+enum Drivetrain {
+  FWD
+  RWD
+  AWD
+}
+
+enum InsuranceTier {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum FitTag {
+  DAILY_COMMUTE
+  SHARED_FAMILY
+  WEEKEND_ADVENTURE
+  ECO_CONSCIOUS
+}
+
+enum ExtrasTag {
+  AMERICAN_MADE
+  BRIGHT_COLOR
+  ECO_CONSCIOUS
+  HIGHER_SEATING
+}

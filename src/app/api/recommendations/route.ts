@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateRecommendations } from "@/lib/agent";
+import type { AgentPreference } from "@/lib/agent";
+import { getTopVehicles } from "@/lib/retrieval";
+import {
+  mapPreferencesToProfile,
+  toAgentVehicleCandidate,
+  type IncomingPreference,
+} from "@/lib/preferences";
 
 export async function POST(request: Request) {
   try {
@@ -12,13 +19,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const incomingPreferences = body.preferences as IncomingPreference[];
+    const { profile, context } = mapPreferencesToProfile(incomingPreferences);
+    const topVehicles = await getTopVehicles(profile, 4);
+    const agentCandidates = topVehicles.map(toAgentVehicleCandidate);
+
     const metadata =
       typeof body.metadata === "object" && body.metadata !== null
         ? body.metadata
         : undefined;
 
     const result = await generateRecommendations({
-      preferences: body.preferences,
+      preferences: body.preferences as AgentPreference[],
+      candidates: agentCandidates,
+      context,
       metadata: {
         submittedAt: new Date().toISOString(),
         ...metadata,
@@ -28,6 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         recommendations: result.recommendations,
+        candidates: agentCandidates,
       },
       { status: 200 },
     );

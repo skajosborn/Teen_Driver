@@ -11,8 +11,45 @@ export type AgentPreference = {
   notes?: string;
 };
 
+export type AgentContext = {
+  budgetSummary?: string;
+  safetySummary?: string;
+  usageSummary?: string;
+  extrasSummary?: string;
+  techPreference?: string;
+  timelineExpectation?: string;
+  notes?: string[];
+};
+
+export type AgentVehicleCandidate = {
+  id: string;
+  name: string;
+  score: number;
+  scoreBreakdown: Record<string, number>;
+  msrpRange: { min: number; max: number };
+  bodyStyle: string;
+  drivetrain: string;
+  tags: {
+    fit: string[];
+    extras: string[];
+  };
+  safety: {
+    iihsTopSafetyPick: boolean;
+    nhtsaOverall?: number | null;
+    notableFeatures: string[];
+  };
+  highlights: {
+    tech: string[];
+    teenFriendly: string[];
+    maintenance: string[];
+  };
+  sources: { type: string; url: string }[];
+};
+
 export type AgentRequestPayload = {
   preferences: AgentPreference[];
+  context?: AgentContext;
+  candidates?: AgentVehicleCandidate[];
   metadata?: {
     submittedAt?: string;
     sessionId?: string;
@@ -42,6 +79,17 @@ export async function generateRecommendations(
 ): Promise<AgentResponse> {
   const client = ensureClient();
 
+  const snapshot = {
+    preferences: payload.preferences,
+    context: payload.context,
+    candidates: payload.candidates?.map((candidate) => ({
+      ...candidate,
+      // keep only a couple of sources to limit prompt size
+      sources: candidate.sources.slice(0, 3),
+    })),
+    metadata: payload.metadata,
+  };
+
   const response = await client.responses.create({
     model: defaultModel,
     max_output_tokens: 900,
@@ -49,14 +97,14 @@ export async function generateRecommendations(
       {
         role: "system",
         content:
-          "You are Teen Driver, a parent-first automotive concierge. Turn structured preferences into a concise shortlist of 3-4 vehicle recommendations. For each recommendation, include: vehicle name, why it fits the parent priorities, safety highlights, cost context, and next action a parent should take. Keep tone confident and collaborative.",
+          "You are Teen Driver, a parent-first automotive concierge. You will receive the parent's structured preferences plus a short list of pre-filtered vehicle candidates. Use those candidates as your primary consideration set (you may introduce others only if strongly justified). Produce a concise shortlist of 3-4 vehicles. For each recommendation, include: vehicle name, why it fits the parent priorities, safety highlights, cost context, and next action a parent should take. Keep tone confident and collaborative.",
       },
       {
         role: "user",
         content: [
           {
             type: "input_text",
-            text: `Parent preferences (JSON):\n${JSON.stringify(payload, null, 2)}\n\nReturn a JSON object with the shape:\n{\n  "recommendations": [\n    {\n      "vehicle": string,\n      "fitSummary": string,\n      "safetyHighpoints": string,\n      "costInsights": string,\n      "nextStep": string\n    }\n  ]\n}\n\nRespond with JSON only. No markdown, commentary, or extra text.`,
+            text: `Parent profile and vehicle candidates (JSON):\n${JSON.stringify(snapshot, null, 2)}\n\nReturn a JSON object with the shape:\n{\n  "recommendations": [\n    {\n      "vehicle": string,\n      "fitSummary": string,\n      "safetyHighpoints": string,\n      "costInsights": string,\n      "nextStep": string\n    }\n  ]\n}\n\nRespond with JSON only. No markdown, commentary, or extra text.`,
           },
         ],
       },

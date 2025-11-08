@@ -1,0 +1,52 @@
+{
+  "description": "Weekend-adventure hybrid crossover with eco priorities",
+  "preferences": [
+    {
+      "questionId": "budget",
+      "label": "Budget & financing comfort zone",
+      "priority": 3,
+      "type": "single",
+      "selectedValues": ["premium"]
+    },
+    {
+      "questionId": "safety",
+      "label": "Safety & crash-test expectations",
+      "priority": 4,
+      "type": "single",
+      "selectedValues": ["advanced-adas"]
+    },
+    {
+      "questionId": "usage",
+      "label": "How your teen will use the car",
+      "priority": 4,
+      "type": "single",
+      "selectedValues": ["adventure"]
+    },
+    {
+      "questionId": "extras",
+      "label": "Unique preferences & feel-good factors",
+      "priority": 5,
+      "type": "multi",
+      "selectedValues": ["eco-conscious", "higher-seating"]
+    },
+    {
+      "questionId": "tech",
+      "label": "Tech & convenience priorities",
+      "priority": 2,
+      "type": "single",
+      "selectedValues": ["premium-tech"]
+    },
+    {
+      "questionId": "timeline",
+      "label": "Timeline & readiness",
+      "priority": 1,
+      "type": "single",
+      "selectedValues": ["researching"]
+    }
+  ],
+  "metadata": {
+    "fixture": "adventure-hybrid",
+    "submittedBy": "fixtures"
+  }
+}
+
