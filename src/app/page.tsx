@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeroQuizPreview from "@/components/HeroQuizPreview";
 
 export default function Home() {
   const features = [
@@ -132,68 +133,9 @@ export default function Home() {
             </div>
           </section>
 
-          <aside
-            id="get-started"
-            className="w-full max-w-md shrink-0 space-y-6 rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur"
-          >
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-white">
-                One quiz captures it all
-              </h2>
-              <p className="text-sm text-slate-200">
-                Answer once and every preference flows straight into your AI concierge—no duplicate forms.
-              </p>
-            </div>
-            <ul className="space-y-4 text-sm text-slate-200">
-              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
-                <span className="mt-1 h-2 w-2 rounded-full bg-sky-400" />
-                <div>
-                  <p className="font-semibold text-white">Budget guardrails</p>
-                  <p className="text-slate-300">
-                    Define value-first, CPO comfort, or premium assurance—down to the dollar range that fits.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
-                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-                <div>
-                  <p className="font-semibold text-white">Safety & usage priorities</p>
-                  <p className="text-slate-300">
-                    Choose the crash ratings, ADAS tech, and daily driving scenarios that matter for your teen.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
-                <span className="mt-1 h-2 w-2 rounded-full bg-purple-400" />
-                <div>
-                  <p className="font-semibold text-white">Feel-good extras</p>
-                  <p className="text-slate-300">
-                    Flag preferences like American-made confidence, higher seating, bright colors, or eco-first options.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
-                <span className="mt-1 h-2 w-2 rounded-full bg-amber-400" />
-                <div>
-                  <p className="font-semibold text-white">Special requests</p>
-                  <p className="text-slate-300">
-                    Add notes about models to avoid, insurance considerations, or timeline constraints.
-                  </p>
-                </div>
-              </li>
-            </ul>
-            <div className="space-y-3">
-              <Link
-                href="/quiz"
-                className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/40 transition hover:bg-sky-400"
-              >
-                Start the parent quiz
-              </Link>
-              <p className="text-center text-xs text-slate-400">
-                Takes about 90 seconds. Your answers power every recommendation.
-              </p>
-            </div>
-          </aside>
+          <div className="w-full max-w-md shrink-0">
+            <HeroQuizPreview />
+          </div>
         </main>
 
         <section
