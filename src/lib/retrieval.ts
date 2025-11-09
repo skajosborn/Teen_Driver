@@ -188,3 +188,86 @@ export async function listAllVehicles(): Promise<VehicleWithSources[]> {
   });
 }
 
+function normalise(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export interface VehicleRankingResult {
+  matched: ScoredVehicle | null;
+  rank: number | null;
+  totalCompared: number;
+  leaderboard: ScoredVehicle[];
+  yearExact?: boolean;
+}
+
+export async function rankVehicleAgainstProfile(
+  profile: PreferenceProfile,
+  descriptor: { make: string; model: string; year?: number | null },
+  leaderboardSize = 5,
+): Promise<VehicleRankingResult> {
+  const vehicles = await prisma.vehicle.findMany({
+    include: { sources: true },
+  });
+
+  const scored: ScoredVehicle[] = vehicles
+    .map((vehicle: VehicleWithSources): ScoredVehicle => {
+      const { total, breakdown } = scoreVehicle(vehicle, profile);
+      return {
+        ...vehicle,
+        score: total,
+        scoreBreakdown: breakdown,
+      } as ScoredVehicle;
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const targetMake = normalise(descriptor.make);
+  const targetModel = normalise(descriptor.model);
+  const targetModelStripped = targetModel.replace(/[^a-z0-9]/g, "");
+  const requestedYear =
+    typeof descriptor.year === "number" && Number.isFinite(descriptor.year)
+      ? descriptor.year
+      : undefined;
+
+  let matched: ScoredVehicle | null = null;
+
+  for (const vehicle of scored) {
+    if (normalise(vehicle.make) !== targetMake) continue;
+    const vehicleModel = normalise(vehicle.model);
+    const vehicleModelStripped = vehicleModel.replace(/[^a-z0-9]/g, "");
+
+    const modelMatches =
+      vehicleModel === targetModel ||
+      vehicleModel.includes(targetModel) ||
+      targetModel.includes(vehicleModel) ||
+      vehicleModelStripped === targetModelStripped;
+
+    if (!modelMatches) continue;
+
+    if (requestedYear && !vehicle.years.includes(requestedYear)) {
+      // Keep searching for an exact year match, but store the first model match as fallback.
+      if (!matched) {
+        matched = vehicle;
+      }
+      continue;
+    }
+
+    matched = vehicle;
+    break;
+  }
+
+  const rank = matched
+    ? scored.findIndex((vehicle) => vehicle.id === matched!.id) + 1
+    : null;
+
+  const yearExact =
+    matched && requestedYear ? matched.years.includes(requestedYear) : undefined;
+
+  return {
+    matched,
+    rank,
+    totalCompared: scored.length,
+    leaderboard: scored.slice(0, leaderboardSize),
+    yearExact,
+  };
+}
+

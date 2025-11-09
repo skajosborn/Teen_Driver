@@ -95,37 +95,27 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="mx-auto flex max-w-6xl flex-col gap-24 px-6 pb-24 pt-10 sm:px-10 lg:flex-row lg:items-start">
-          <section className="flex-1 space-y-8">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 shadow-lg shadow-sky-500/20 backdrop-blur">
-              Trusted by 2,500+ cautious parents
-            </span>
-            <div className="relative w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 shadow-2xl shadow-slate-950/40">
+        <main className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-10 sm:px-10 lg:flex-row lg:items-start">
+          <section className="flex-1 space-y-10">
+            <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05]">
+            Smart technology. Peace of mind. The perfect car awaits.
+            </h1>
+            <p className="max-w-lg text-lg text-slate-300 sm:text-xl">
+              Backed by real NHTSA crash tests, insurance costs, and an agentic concierge designed for cautious families.
+            </p>
+            <div className="relative mt-4 w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 shadow-2xl shadow-slate-950/60 sm:max-w-md lg:max-w-lg">
               <Image
                 src="/car6.jpg"
-                alt="Illustration of a modern family car dashboard and safety tech"
-                width={1200}
-                height={620}
-                className="h-auto w-full object-cover"
+                alt="Toyota SUV parked in low light"
+                width={960}
+                height={640}
+                className="h-full w-full object-cover"
                 priority
               />
-              <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-slate-950/70 px-6 py-4 backdrop-blur">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
-                  Personalized Car Concierge
-                </p>
-                <p className="mt-1 text-lg font-semibold text-white">
-                  Every recommendation is tuned to your family&apos;s non-negotiables.
-                </p>
+              <div className="absolute inset-x-5 bottom-5 rounded-2xl bg-slate-950/70 px-5 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 backdrop-blur">
+                Powered by safety data, not ads
               </div>
             </div>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Match the perfect first car for your teen—without second guessing.
-            </h1>
-            <p className="text-lg text-slate-300 sm:text-xl">
-              Tell us the safety standards, budget guardrails, and lifestyle fit your
-              family expects. Our agentic car concierge surfaces a personalized short
-              list, complete with negotiation insights and readiness tips for your teen.
-            </p>
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <Link
                 href="/quiz"
@@ -140,104 +130,90 @@ export default function Home() {
                 See how it works →
               </a>
             </div>
-
-            <div
-              id="features"
-              className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:grid-cols-3"
-            >
-              {features.map((feature) => (
-                <div key={feature.title} className="space-y-3">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/70 text-sky-400">
-                    ●
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-300">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
           </section>
 
           <aside
             id="get-started"
-            className="w-full max-w-md shrink-0 space-y-6 rounded-3xl border border-white/10 bg-white/10 p-8 shadow-2xl shadow-slate-900/40 backdrop-blur-lg"
+            className="w-full max-w-md shrink-0 space-y-6 rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur"
           >
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold text-white">
-                Describe your ideal car in 90 seconds
+                One quiz captures it all
               </h2>
               <p className="text-sm text-slate-200">
-                The more you share, the smarter your shortlist becomes. We never sell or
-                share your data.
+                Answer once and every preference flows straight into your AI concierge—no duplicate forms.
               </p>
             </div>
-            <form className="space-y-5">
-              <label className="space-y-2">
-                <span className="text-sm font-semibold uppercase tracking-wide text-slate-200">
-                  Budget range
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="number"
-                    placeholder="Min ($)"
-                    className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 text-sm text-white placeholder-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max ($)"
-                    className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 text-sm text-white placeholder-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40"
-                  />
+            <ul className="space-y-4 text-sm text-slate-200">
+              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+                <span className="mt-1 h-2 w-2 rounded-full bg-sky-400" />
+                <div>
+                  <p className="font-semibold text-white">Budget guardrails</p>
+                  <p className="text-slate-300">
+                    Define value-first, CPO comfort, or premium assurance—down to the dollar range that fits.
+                  </p>
                 </div>
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-sm font-semibold uppercase tracking-wide text-slate-200">
-                  Safety priorities
-                </span>
-                <select className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 text-sm text-white focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40">
-                  <option>Top-tier crash ratings (NHTSA & IIHS)</option>
-                  <option>Advanced driver assistance features</option>
-                  <option>Teen driver monitoring technology</option>
-                  <option>Insurance-friendly models</option>
-                </select>
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-sm font-semibold uppercase tracking-wide text-slate-200">
-                  Daily driving needs
-                </span>
-                <select className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 text-sm text-white focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40">
-                  <option>Commute & school drop-offs</option>
-                  <option>Weekend adventures & hobbies</option>
-                  <option>Shared family vehicle</option>
-                  <option>Learning and practice only</option>
-                </select>
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-sm font-semibold uppercase tracking-wide text-slate-200">
-                  Must-have features
-                </span>
-                <textarea
-                  rows={3}
-                  placeholder="Blind-spot alerts, Apple CarPlay, AWD, etc."
-                  className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-2 text-sm text-white placeholder-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40"
-                />
-              </label>
-
-              <button
-                type="button"
-                className="w-full rounded-full bg-white py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-slate-900/30 transition hover:bg-slate-100"
+              </li>
+              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
+                <div>
+                  <p className="font-semibold text-white">Safety & usage priorities</p>
+                  <p className="text-slate-300">
+                    Choose the crash ratings, ADAS tech, and daily driving scenarios that matter for your teen.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+                <span className="mt-1 h-2 w-2 rounded-full bg-purple-400" />
+                <div>
+                  <p className="font-semibold text-white">Feel-good extras</p>
+                  <p className="text-slate-300">
+                    Flag preferences like American-made confidence, higher seating, bright colors, or eco-first options.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3 rounded-2xl border border-white/10 bg-slate-900/50 p-4">
+                <span className="mt-1 h-2 w-2 rounded-full bg-amber-400" />
+                <div>
+                  <p className="font-semibold text-white">Special requests</p>
+                  <p className="text-slate-300">
+                    Add notes about models to avoid, insurance considerations, or timeline constraints.
+                  </p>
+                </div>
+              </li>
+            </ul>
+            <div className="space-y-3">
+              <Link
+                href="/quiz"
+                className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/40 transition hover:bg-sky-400"
               >
-                Generate my custom list
-              </button>
-            </form>
-            <p className="text-xs text-slate-300">
-              Response time: under 3 minutes during business hours.
-            </p>
+                Start the parent quiz
+              </Link>
+              <p className="text-center text-xs text-slate-400">
+                Takes about 90 seconds. Your answers power every recommendation.
+              </p>
+            </div>
           </aside>
         </main>
+
+        <section
+          id="features"
+          className="mx-auto mb-24 max-w-6xl px-6 sm:px-10"
+        >
+          <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.title} className="space-y-3">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/70 text-sky-400">
+                  ●
+                </div>
+                <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-300">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
       <section

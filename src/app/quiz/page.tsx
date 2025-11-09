@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import type { AgentVehicleCandidate } from "@/lib/agent";
 
@@ -420,6 +421,24 @@ export default function QuizPage() {
   >([]);
   const [agentError, setAgentError] = useState<string | null>(null);
   const [agentCandidates, setAgentCandidates] = useState<AgentVehicleCandidate[]>([]);
+  const [lookupYear, setLookupYear] = useState("");
+  const [lookupMake, setLookupMake] = useState("");
+  const [lookupModel, setLookupModel] = useState("");
+  const [lookupStatus, setLookupStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [lookupResult, setLookupResult] = useState<{
+    match: AgentVehicleCandidate | null;
+    rank: number | null;
+    totalCompared: number;
+    leaderboard: AgentVehicleCandidate[];
+    yearExact: boolean | null;
+    availableYears: number[];
+    message?: string;
+  } | null>(null);
+
+  const futureYear = useMemo(() => new Date().getFullYear() + 1, []);
 
   const currentQuestion = questions[stepIndex];
   const totalQuestions = questions.length;
@@ -623,6 +642,12 @@ export default function QuizPage() {
     setAgentError(null);
     setAgentCandidates([]);
     setRecommendations([]);
+    setLookupYear("");
+    setLookupMake("");
+    setLookupModel("");
+    setLookupStatus("idle");
+    setLookupError(null);
+    setLookupResult(null);
   };
 
   const canAdvance = useMemo(() => {
@@ -844,6 +869,109 @@ export default function QuizPage() {
           : "Something went wrong sending your profile to the agent.",
       );
       setAgentCandidates([]);
+    }
+  };
+
+  const handleVehicleLookup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!hasSummary) return;
+
+    const trimmedMake = lookupMake.trim();
+    const trimmedModel = lookupModel.trim();
+    const trimmedYear = lookupYear.trim();
+
+    if (!trimmedMake || !trimmedModel) {
+      setLookupStatus("error");
+      setLookupError("Please provide both a make and model to evaluate.");
+      return;
+    }
+
+    let yearNumber: number | undefined;
+    if (trimmedYear) {
+      const parsed = Number.parseInt(trimmedYear, 10);
+      if (Number.isNaN(parsed)) {
+        setLookupStatus("error");
+        setLookupError("Year must be a valid number (e.g., 2016).");
+        return;
+      }
+      const currentYear = futureYear;
+      if (parsed < 1985 || parsed > currentYear) {
+        setLookupStatus("error");
+        setLookupError(`Enter a year between 1985 and ${currentYear}.`);
+        return;
+      }
+      yearNumber = parsed;
+    }
+
+    setLookupStatus("loading");
+    setLookupError(null);
+
+    try {
+      const response = await fetch("/api/vehicle-ranking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          preferences: structuredPayload.preferences,
+          vehicle: {
+            make: trimmedMake,
+            model: trimmedModel,
+            year: yearNumber ?? null,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(
+          errorBody?.error ?? "Unable to evaluate that vehicle right now.",
+        );
+      }
+
+      const data = (await response.json()) as {
+        match?: AgentVehicleCandidate | null;
+        rank?: number | null;
+        totalCompared?: number;
+        leaderboard?: AgentVehicleCandidate[];
+        yearExact?: boolean | null;
+        message?: string;
+      };
+
+      setLookupResult({
+        match: data.match ?? null,
+        rank:
+          typeof data.rank === "number" && Number.isFinite(data.rank)
+            ? data.rank
+            : null,
+        totalCompared:
+          typeof data.totalCompared === "number" && Number.isFinite(data.totalCompared)
+            ? data.totalCompared
+            : 0,
+        leaderboard: Array.isArray(data.leaderboard) ? data.leaderboard : [],
+        yearExact: typeof data.yearExact === "boolean" ? data.yearExact : null,
+        availableYears: Array.isArray(data.availableYears)
+          ? data.availableYears
+              .map((value) => {
+                if (typeof value === "number") return value;
+                if (typeof value === "string") {
+                  const parsed = Number.parseInt(value, 10);
+                  return Number.isNaN(parsed) ? null : parsed;
+                }
+                return null;
+              })
+              .filter((value): value is number => value !== null)
+          : [],
+        message: data.message,
+      });
+      setLookupStatus("success");
+    } catch (error) {
+      setLookupStatus("error");
+      setLookupError(
+        error instanceof Error
+          ? error.message
+          : "Unable to evaluate that vehicle right now.",
+      );
     }
   };
 
@@ -1095,6 +1223,197 @@ export default function QuizPage() {
                 route to generate recommendations.
               </p>
             </details>
+
+            <div className="space-y-5 rounded-3xl border border-purple-400/30 bg-purple-500/10 p-6 text-slate-100">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold">
+                  Already have a vehicle in mind?
+                </h2>
+                <p className="text-sm text-slate-200/80">
+                  Enter a year, make, and model to see how it stacks up against your teen driver
+                  priorities. We’ll compare it to every vehicle in your concierge catalog.
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleVehicleLookup}
+                className="grid gap-4 lg:grid-cols-[minmax(100px,140px)_repeat(2,minmax(0,1fr))_auto] lg:items-end"
+              >
+                <div className="space-y-1">
+                  <label
+                    htmlFor="lookup-year"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                  >
+                    Year (optional)
+                  </label>
+                  <input
+                    id="lookup-year"
+                    type="number"
+                    min={1985}
+                    max={futureYear}
+                    value={lookupYear}
+                    onChange={(event) => setLookupYear(event.target.value)}
+                    placeholder="2016"
+                    className="w-full rounded-2xl border border-white/20 bg-slate-900/40 px-3 py-2 text-sm text-white placeholder-slate-400 focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-400/40"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="lookup-make"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                  >
+                    Make *
+                  </label>
+                  <input
+                    id="lookup-make"
+                    type="text"
+                    value={lookupMake}
+                    onChange={(event) => setLookupMake(event.target.value)}
+                    placeholder="Toyota"
+                    className="w-full rounded-2xl border border-white/20 bg-slate-900/40 px-3 py-2 text-sm text-white placeholder-slate-400 focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-400/40"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="lookup-model"
+                    className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                  >
+                    Model *
+                  </label>
+                  <input
+                    id="lookup-model"
+                    type="text"
+                    value={lookupModel}
+                    onChange={(event) => setLookupModel(event.target.value)}
+                    placeholder="Corolla"
+                    className="w-full rounded-2xl border border-white/20 bg-slate-900/40 px-3 py-2 text-sm text-white placeholder-slate-400 focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-400/40"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={
+                    !hasSummary || lookupStatus === "loading" || !lookupMake.trim() || !lookupModel.trim()
+                  }
+                  className="flex h-11 items-center justify-center rounded-full bg-purple-400 px-6 text-sm font-semibold text-slate-950 shadow-lg shadow-purple-500/40 transition hover:bg-purple-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+                >
+                  {lookupStatus === "loading" ? "Scoring…" : "Score this vehicle"}
+                </button>
+              </form>
+
+              {lookupStatus === "error" && lookupError ? (
+                <p className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                  {lookupError}
+                </p>
+              ) : null}
+
+              {lookupStatus === "success" && lookupResult ? (
+                lookupResult.match ? (
+                  <div className="space-y-5 rounded-2xl border border-white/15 bg-slate-900/50 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-purple-300">
+                          Ranked vehicle
+                        </p>
+                        <h3 className="text-xl font-semibold text-white">
+                          {lookupResult.match?.name ?? "Vehicle"}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-300">
+                          {lookupResult.message ??
+                            `Calculated score with ${lookupResult.totalCompared} vehicles in your catalog.`}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-purple-300/40 bg-purple-500/20 px-4 py-2 text-sm font-semibold text-purple-100">
+                        Score {lookupResult.match ? Math.round(lookupResult.match.score) : "—"}
+                      </div>
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="space-y-3">
+                        <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            Placement
+                          </p>
+                          <p className="mt-2 text-sm text-slate-200">
+                            {lookupResult.rank
+                              ? `Ranked #${lookupResult.rank} out of ${lookupResult.totalCompared} scored vehicles.`
+                              : "Evaluated against your priorities."}
+                          </p>
+                          {lookupResult.yearExact === false ? (
+                            <p className="mt-2 text-xs text-amber-200">
+                              We matched the closest trim in our data
+                              {lookupResult.availableYears.length
+                                ? ` (${lookupResult.availableYears.join(", ")})`
+                                : ""}.
+                              Update your catalog to include the exact year for even tighter scoring.
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="space-y-2 text-xs text-slate-300">
+                          <div>
+                            <span className="font-semibold text-slate-200">MSRP range:</span>{" "}
+                            {formatMsrpRange(lookupResult.match) ?? "Not available"}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-slate-200">Efficiency:</span>{" "}
+                            {formatFuelEconomy(lookupResult.match) ?? "Fuel data coming soon"}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-slate-200">Safety badges:</span>{" "}
+                            {formatSafetySummary(lookupResult.match) ?? "Ratings pending"}
+                          </div>
+                          {lookupResult.match?.scoreBreakdown ? (
+                            <div>
+                              <span className="font-semibold text-slate-200">Score breakdown:</span>
+                              <ul className="mt-1 space-y-1 text-slate-400">
+                                {formatScoreBreakdown(lookupResult.match).map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-purple-300">
+                          Top matches right now
+                        </p>
+                        <ul className="space-y-3">
+                          {lookupResult.leaderboard.slice(0, 4).map((item, index) => (
+                            <li
+                              key={`${item.id}-${index}-leaderboard`}
+                              className={`rounded-2xl border border-white/10 bg-slate-950/40 p-4 ${
+                                lookupResult.match?.id === item.id
+                                  ? "border-purple-300/60 bg-purple-500/10"
+                                  : ""
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-semibold text-white">
+                                  #{index + 1} · {item.name}
+                                </p>
+                                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
+                                  Score {Math.round(item.score)}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {formatMsrpRange(item) ?? "MSRP coming soon"} •{" "}
+                                {formatFuelEconomy(item) ?? "Fuel TBD"}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                    {lookupResult.message ??
+                      "We couldn’t find that vehicle in the catalog yet. Try another year or confirm the spelling."}
+                  </p>
+                )
+              ) : null}
+            </div>
 
             <div className="space-y-4 rounded-3xl border border-sky-400/30 bg-sky-500/10 p-6 text-slate-100">
               <div className="flex flex-wrap items-center justify-between gap-4">
