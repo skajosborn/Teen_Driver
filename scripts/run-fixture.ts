@@ -3,7 +3,11 @@ import "tsconfig-paths/register";
 
 import { readFile } from "fs/promises";
 import path from "path";
-import { mapPreferencesToProfile, toAgentVehicleCandidate, type IncomingPreference } from "@/lib/preferences";
+import {
+  mapPreferencesToProfile,
+  toAgentVehicleCandidate,
+  type IncomingPreference,
+} from "@/lib/preferences";
 import { getTopVehicles } from "@/lib/retrieval";
 import { generateRecommendations, type AgentPreference } from "@/lib/agent";
 

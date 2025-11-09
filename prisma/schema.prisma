@@ -26,14 +26,27 @@ model Vehicle {
   insuranceTier         InsuranceTier
   fuelEconomyCity       Int
   fuelEconomyHighway    Int
+  fuelEconomyCombined   Int?
   safetyIihsTopSafetyPick Boolean
   safetyNhtsaOverall    Int?
+  safetyNhtsaFrontal    Int?
+  safetyNhtsaSide       Int?
+  safetyNhtsaRollover   Int?
+  recallCount           Int?
   safetyNotableFeatures String[]
   techHighlights        String[]
   teenFriendlyFactors   String[]
   maintenanceNotes      String[]
   fitTags               FitTag[]
   extrasTags            ExtrasTag[]
+  fuelType              String?
+  transmission          String?
+  doors                 Int?
+  seats                 Int?
+  carQueryTrimId        String?
+  imageUrl              String?
+  imageAttribution      String?
+  dataSource            VehicleDataSource   @default(MANUAL)
   sources               VehicleSource[]
   lastReviewed          DateTime
   createdAt             DateTime            @default(now())
@@ -82,4 +95,12 @@ enum ExtrasTag {
   BRIGHT_COLOR
   ECO_CONSCIOUS
   HIGHER_SEATING
+}
+
+enum VehicleDataSource {
+  MANUAL
+  NHTSA
+  CARQUERY
+  FUEL_ECONOMY
+  BLENDED
 }

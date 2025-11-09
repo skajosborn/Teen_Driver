@@ -211,11 +211,25 @@ export function toAgentVehicleCandidate(vehicle: ScoredVehicle): AgentVehicleCan
       nhtsaOverall: vehicle.safetyNhtsaOverall,
       notableFeatures: vehicle.safetyNotableFeatures,
     },
+    fuelEconomy: {
+      city: vehicle.fuelEconomyCity > 0 ? vehicle.fuelEconomyCity : undefined,
+      highway: vehicle.fuelEconomyHighway > 0 ? vehicle.fuelEconomyHighway : undefined,
+      combined:
+        vehicle.fuelEconomyCombined !== null && vehicle.fuelEconomyCombined !== undefined
+          ? vehicle.fuelEconomyCombined
+          : undefined,
+    },
     highlights: {
       tech: vehicle.techHighlights.slice(0, 3),
       teenFriendly: vehicle.teenFriendlyFactors.slice(0, 3),
       maintenance: vehicle.maintenanceNotes.slice(0, 2),
     },
+    image: vehicle.imageUrl
+      ? {
+          url: vehicle.imageUrl,
+          attribution: vehicle.imageAttribution ?? undefined,
+        }
+      : undefined,
     sources: sources.slice(0, 3),
   };
 }

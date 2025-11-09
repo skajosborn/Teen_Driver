@@ -323,6 +323,335 @@
       { "type": "Manufacturer", "url": "https://www.kia.com/us/en/ev6" }
     ],
     "lastReviewed": "2024-11-04"
+  },
+  {
+    "id": "honda-accord-2015",
+    "make": "Honda",
+    "model": "Accord",
+    "trim": "LX",
+    "years": [2013, 2014, 2015],
+    "bodyStyle": "sedan",
+    "drivetrain": "FWD",
+    "msrpRange": [9500, 14500],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 27, "highway": 36 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Standard rear-view camera and LaneWatch blind-spot display",
+        "Strong IIHS frontal crash protection for driver and passenger"
+      ]
+    },
+    "techHighlights": [
+      "Bluetooth hands-free with SMS readout",
+      "Dual-zone automatic climate for comfort",
+      "Standard backup camera with guidelines"
+    ],
+    "teenFriendlyFactors": [
+      "Predictable steering and braking for new drivers",
+      "Spacious rear seat for carpool needs",
+      "Honda reliability keeps ownership costs low"
+    ],
+    "maintenanceNotes": [
+      "Verify transmission fluid service history on CVT models",
+      "Inspect for recalls on airbag inflators and ensure completion"
+    ],
+    "fitTags": ["daily-commute", "shared-family"],
+    "extrasTags": ["american-made"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/honda/accord-4-door-sedan/2015"
+      },
+      {
+        "type": "KBB",
+        "url": "https://www.kbb.com/honda/accord/2015/"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "toyota-corolla-2016",
+    "make": "Toyota",
+    "model": "Corolla",
+    "trim": "LE",
+    "years": [2014, 2015, 2016],
+    "bodyStyle": "sedan",
+    "drivetrain": "FWD",
+    "msrpRange": [8500, 13000],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 29, "highway": 38 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Toyota Star Safety System with stability and traction control",
+        "Whiplash-Injury-Lessening front seats"
+      ]
+    },
+    "techHighlights": [
+      "Standard Entune touchscreen with backup camera",
+      "Bluetooth audio streaming for safer playlists",
+      "Available Toyota Safety Sense pre-collision alerts"
+    ],
+    "teenFriendlyFactors": [
+      "Excellent fuel economy keeps monthly costs predictable",
+      "Soft suspension smooths out rough city roads",
+      "Simple controls limit distraction"
+    ],
+    "maintenanceNotes": [
+      "Check for regular oil changes to prevent carbon buildup",
+      "Confirm CVT fluid service interval (60k miles recommended)"
+    ],
+    "fitTags": ["daily-commute", "eco-conscious"],
+    "extrasTags": ["bright-color"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/toyota/corolla-4-door-sedan/2016"
+      },
+      {
+        "type": "Edmunds",
+        "url": "https://www.edmunds.com/toyota/corolla/2016/safety/"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "subaru-outback-2014",
+    "make": "Subaru",
+    "model": "Outback",
+    "trim": "2.5i Premium",
+    "years": [2013, 2014],
+    "bodyStyle": "suv",
+    "drivetrain": "AWD",
+    "msrpRange": [10500, 15000],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 24, "highway": 30 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Symmetrical AWD with excellent stability ratings",
+        "Available EyeSight pre-collision braking on later builds"
+      ]
+    },
+    "techHighlights": [
+      "Optional EyeSight camera-based safety suite",
+      "Large greenhouse for outward visibility",
+      "All-weather package with heated seats"
+    ],
+    "teenFriendlyFactors": [
+      "Standard AWD confidence in rain and snow",
+      "Huge cargo area for sports or weekend trips",
+      "Higher seating helps with sightlines"
+    ],
+    "maintenanceNotes": [
+      "Inspect CVT fluid service records and differential fluid",
+      "Check for head gasket or oil consumption issues (rare but monitor)"
+    ],
+    "fitTags": ["shared-family", "weekend-adventure"],
+    "extrasTags": ["higher-seating"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/subaru/outback-4-door-wagon/2014"
+      },
+      {
+        "type": "ConsumerReports",
+        "url": "https://www.consumerreports.org/cars/subaru/outback/2014/overview/"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "ford-escape-2013",
+    "make": "Ford",
+    "model": "Escape",
+    "trim": "SE FWD",
+    "years": [2013, 2014],
+    "bodyStyle": "crossover",
+    "drivetrain": "FWD",
+    "msrpRange": [6000, 9500],
+    "insuranceTier": "moderate",
+    "fuelEconomy": { "city": 23, "highway": 32 },
+    "safety": {
+      "iihsTopSafetyPick": false,
+      "nhtsaOverall": 4,
+      "notableFeatures": [
+        "AdvanceTrac with Roll Stability Control",
+        "Curve Control reduces speed on off-ramps automatically"
+      ]
+    },
+    "techHighlights": [
+      "Sync voice controls with Bluetooth and USB",
+      "Available rear parking sensors",
+      "MyKey programmable speed/volume limits"
+    ],
+    "teenFriendlyFactors": [
+      "Compact footprint makes parking easier",
+      "MyKey lets parents set speed and audio caps",
+      "Split-fold rear seats fit sports or band gear"
+    ],
+    "maintenanceNotes": [
+      "Verify coolant recall service completion for 1.6L EcoBoost",
+      "Budget for transmission fluid change if over 100k miles"
+    ],
+    "fitTags": ["daily-commute", "weekend-adventure"],
+    "extrasTags": ["american-made", "higher-seating"],
+    "sources": [
+      {
+        "type": "NHTSA",
+        "url": "https://www.nhtsa.gov/vehicle/2013/FORD/ESCAPE/FWD"
+      },
+      {
+        "type": "Ford",
+        "url": "https://media.ford.com/content/dam/fordmedia/North%20America/US/product/2013/escape/2013-Ford-Escape-Tech-Specs.pdf"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "toyota-prius-2015",
+    "make": "Toyota",
+    "model": "Prius",
+    "trim": "Two",
+    "years": [2014, 2015],
+    "bodyStyle": "hatchback",
+    "drivetrain": "FWD",
+    "msrpRange": [9000, 13500],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 51, "highway": 48 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 4,
+      "notableFeatures": [
+        "Toyota Reliability with battery warranty coverage to 150k miles (CARB states)",
+        "Vehicle Stability Control and seven airbags standard"
+      ]
+    },
+    "techHighlights": [
+      "Hybrid Synergy Drive with EV mode for parking lots",
+      "Touch Tracer controls reduce eyes-off-road time",
+      "Available solar roof ventilation to keep cabin cool"
+    ],
+    "teenFriendlyFactors": [
+      "Outstanding fuel economy lowers monthly spend",
+      "Lower power output encourages smooth driving",
+      "Hatchback versatility for instruments or luggage"
+    ],
+    "maintenanceNotes": [
+      "Check hybrid battery health via diagnostic scan",
+      "Confirm inverter cooling pump recall status"
+    ],
+    "fitTags": ["eco-conscious", "daily-commute"],
+    "extrasTags": ["bright-color"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/toyota/prius-4-door-hatchback/2015"
+      },
+      {
+        "type": "FuelEconomyGov",
+        "url": "https://www.fueleconomy.gov/feg/bymodel/2015_Toyota_Prius.shtml"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "hyundai-sonata-2015",
+    "make": "Hyundai",
+    "model": "Sonata",
+    "trim": "Sport",
+    "years": [2015, 2016],
+    "bodyStyle": "sedan",
+    "drivetrain": "FWD",
+    "msrpRange": [7500, 12500],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 25, "highway": 37 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "Structural redesign with excellent small-overlap performance",
+        "Available blind-spot detection and rear cross-traffic alert"
+      ]
+    },
+    "techHighlights": [
+      "Apple CarPlay and Android Auto compatibility (2016 update)",
+      "Hyundai Blue Link with teen driver alerts",
+      "Hands-free smart trunk for easy loading"
+    ],
+    "teenFriendlyFactors": [
+      "Smooth ride calms nervous first-time drivers",
+      "Plenty of rear legroom for friends or siblings",
+      "Comprehensive warranty often still transferrable"
+    ],
+    "maintenanceNotes": [
+      "Confirm software update for power steering recall",
+      "Inspect for consistent oil changes on 2.4L engine"
+    ],
+    "fitTags": ["daily-commute", "shared-family"],
+    "extrasTags": ["american-made"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/hyundai/sonata-4-door-sedan/2015"
+      },
+      {
+        "type": "Hyundai",
+        "url": "https://www.hyundainews.com/en-us/releases/1900"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
+  },
+  {
+    "id": "kia-soul-2016",
+    "make": "Kia",
+    "model": "Soul",
+    "trim": "Base",
+    "years": [2015, 2016, 2017],
+    "bodyStyle": "hatchback",
+    "drivetrain": "FWD",
+    "msrpRange": [6500, 11000],
+    "insuranceTier": "low",
+    "fuelEconomy": { "city": 24, "highway": 31 },
+    "safety": {
+      "iihsTopSafetyPick": true,
+      "nhtsaOverall": 5,
+      "notableFeatures": [
+        "High roofline improves crash energy management",
+        "Available UVO eServices with geo-fencing alerts"
+      ]
+    },
+    "techHighlights": [
+      "Touchscreen with Bluetooth audio and backup camera (2016+)",
+      "Plenty of USB/12V ports for teens' devices",
+      "Optional ventilated seats keep cabin comfortable"
+    ],
+    "teenFriendlyFactors": [
+      "Boxy shape maximizes visibility and cargo flexibility",
+      "Easy maneuverability in tight parking lots",
+      "Fun color options for teens wanting personality"
+    ],
+    "maintenanceNotes": [
+      "Check for steering coupler TSB completion (clunk noise)",
+      "Ensure regular coolant and transmission services"
+    ],
+    "fitTags": ["daily-commute", "shared-family"],
+    "extrasTags": ["bright-color", "higher-seating"],
+    "sources": [
+      {
+        "type": "IIHS",
+        "url": "https://www.iihs.org/ratings/vehicle/kia/soul-4-door-wagon/2016"
+      },
+      {
+        "type": "KBB",
+        "url": "https://www.kbb.com/kia/soul/2016/"
+      }
+    ],
+    "lastReviewed": "2024-11-07"
   }
 ]
 

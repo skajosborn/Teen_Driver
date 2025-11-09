@@ -33,6 +33,11 @@ export type AgentVehicleCandidate = {
     fit: string[];
     extras: string[];
   };
+  fuelEconomy?: {
+    city?: number | null;
+    highway?: number | null;
+    combined?: number | null;
+  };
   safety: {
     iihsTopSafetyPick: boolean;
     nhtsaOverall?: number | null;
@@ -42,6 +47,10 @@ export type AgentVehicleCandidate = {
     tech: string[];
     teenFriendly: string[];
     maintenance: string[];
+  };
+  image?: {
+    url: string;
+    attribution?: string | null;
   };
   sources: { type: string; url: string }[];
 };
@@ -122,7 +131,7 @@ export async function generateRecommendations(
           } else if (content.type === "output_json_schema") {
             try {
               segments.push(JSON.stringify(content.output, null, 2));
-            } catch (error) {
+            } catch {
               // ignore parsing issues, fallback below
             }
           }
@@ -151,7 +160,7 @@ export async function generateRecommendations(
     return {
       recommendations: JSON.stringify(json, null, 2),
     };
-  } catch (error) {
+  } catch {
     return {
       recommendations: parsed,
     };

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
+import type { AgentVehicleCandidate } from "@/lib/agent";
 
 type Option = {
   id: string;
@@ -15,6 +16,7 @@ type BaseQuestion = {
   title: string;
   prompt: string;
   helper?: string;
+  required?: boolean;
 };
 
 type SingleQuestion = BaseQuestion & {
@@ -35,6 +37,20 @@ type TextQuestion = BaseQuestion & {
 };
 
 type Question = SingleQuestion | MultiQuestion | TextQuestion;
+
+function humanizeTag(value: string) {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+const SCORE_BREAKDOWN_LABELS: Record<string, string> = {
+  budget: "Budget",
+  safety: "Safety",
+  usage: "Usage",
+  extras: "Extras",
+};
 
 const questions: Question[] = [
   {
@@ -261,6 +277,7 @@ const questions: Question[] = [
     helper:
       "We’ll attach these notes to your profile so recommendations always reflect your family’s voice.",
     type: "text",
+    required: false,
     placeholder:
       "Example: Avoid recalled models from 2016–2018. Needs rear-seat airbags. Teen is 6'2\" so headroom matters.",
   },
@@ -298,7 +315,9 @@ type SummarizedEntry = {
 const DEFAULT_PRIORITY = 3;
 
 const isQuestionAnswered = (question: Question, response?: Response) => {
-  if (!response) return false;
+  if (!response) {
+    return question.required === false;
+  }
 
   if (question.type === "single") {
     return Boolean(response.optionId);
@@ -310,6 +329,9 @@ const isQuestionAnswered = (question: Question, response?: Response) => {
   }
 
   if (question.type === "text") {
+    if (question.required === false) {
+      return true;
+    }
     return Boolean(response.text?.trim());
   }
 
@@ -397,6 +419,7 @@ export default function QuizPage() {
     }[]
   >([]);
   const [agentError, setAgentError] = useState<string | null>(null);
+  const [agentCandidates, setAgentCandidates] = useState<AgentVehicleCandidate[]>([]);
 
   const currentQuestion = questions[stepIndex];
   const totalQuestions = questions.length;
@@ -595,6 +618,11 @@ export default function QuizPage() {
     setResponses({});
     setStepIndex(0);
     setViewSummary(false);
+    setAgentStatus("idle");
+    setAgentResponse(null);
+    setAgentError(null);
+    setAgentCandidates([]);
+    setRecommendations([]);
   };
 
   const canAdvance = useMemo(() => {
@@ -620,6 +648,100 @@ export default function QuizPage() {
     };
   }, [structuredPreferences]);
 
+  const candidateLookup = useMemo(() => {
+    const map = new Map<string, AgentVehicleCandidate>();
+    agentCandidates.forEach((candidate) => {
+      map.set(candidate.name.toLowerCase(), candidate);
+    });
+    return map;
+  }, [agentCandidates]);
+
+  const resolveCandidate = useCallback(
+    (vehicleName: string) => {
+      const lower = vehicleName.toLowerCase();
+      if (candidateLookup.has(lower)) {
+        return candidateLookup.get(lower);
+      }
+      return agentCandidates.find((candidate) => {
+        const candidateName = candidate.name.toLowerCase();
+        return candidateName.includes(lower) || lower.includes(candidateName);
+      });
+    },
+    [agentCandidates, candidateLookup],
+  );
+
+  const usdFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }),
+    [],
+  );
+
+  const formatMsrpRange = useCallback(
+    (candidate?: AgentVehicleCandidate | null) => {
+      if (!candidate?.msrpRange) return null;
+      const { min, max } = candidate.msrpRange;
+      if (!Number.isFinite(min) || !Number.isFinite(max) || max <= 0) {
+        return null;
+      }
+      if (min === max) {
+        return usdFormatter.format(min);
+      }
+      return `${usdFormatter.format(min)} – ${usdFormatter.format(max)}`;
+    },
+    [usdFormatter],
+  );
+
+  const formatFuelEconomy = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    const city = candidate?.fuelEconomy?.city ?? null;
+    const highway = candidate?.fuelEconomy?.highway ?? null;
+    const combined = candidate?.fuelEconomy?.combined ?? null;
+
+    const segments: string[] = [];
+    if (city && highway) {
+      segments.push(`${city}/${highway} mpg (city/hwy)`);
+    } else if (city) {
+      segments.push(`${city} mpg city`);
+    } else if (highway) {
+      segments.push(`${highway} mpg hwy`);
+    }
+    if (combined && !segments.some((segment) => segment.includes("combined"))) {
+      segments.push(`${combined} mpg combined`);
+    }
+
+    return segments.length ? segments.join(" • ") : null;
+  }, []);
+
+  const formatSafetySummary = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    if (!candidate) return null;
+    const badges: string[] = [];
+    const stars = candidate.safety?.nhtsaOverall;
+    if (stars) {
+      badges.push(`${stars}★ NHTSA`);
+    }
+    if (candidate.safety?.iihsTopSafetyPick) {
+      badges.push("IIHS Top Safety Pick");
+    }
+    return badges.length ? badges.join(" • ") : null;
+  }, []);
+
+  const formatScoreBreakdown = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    if (!candidate?.scoreBreakdown) return [];
+    return (["budget", "safety", "usage", "extras"] as const)
+      .map((key) => {
+        const value = candidate.scoreBreakdown[key];
+        if (typeof value !== "number" || value === 0) return null;
+        const label = SCORE_BREAKDOWN_LABELS[key] ?? key;
+        const rounded = Math.round(value);
+        const prefix = rounded > 0 ? "+" : "";
+        return `${label}: ${prefix}${rounded}`;
+      })
+      .filter(Boolean) as string[];
+  }, []);
+
   const hasSummary = summarizedEntries.length > 0;
   const hasRecommendationsReady = agentStatus === "success" && recommendations.length > 0;
   const agentHelperText =
@@ -644,6 +766,7 @@ export default function QuizPage() {
       setAgentStatus("loading");
       setAgentError(null);
       setAgentResponse(null);
+      setAgentCandidates([]);
 
       const payload = {
         ...structuredPayload,
@@ -668,7 +791,11 @@ export default function QuizPage() {
         );
       }
 
-      const data = (await response.json()) as { recommendations?: string };
+      const data = (await response.json()) as {
+        recommendations?: string;
+        candidates?: AgentVehicleCandidate[];
+      };
+      setAgentCandidates(data.candidates ?? []);
       const raw = data.recommendations;
       if (!raw) {
         setAgentResponse(
@@ -709,8 +836,6 @@ export default function QuizPage() {
       }
 
       setAgentStatus("success");
-
-      setAgentStatus("success");
     } catch (error) {
       setAgentStatus("error");
       setAgentError(
@@ -718,6 +843,7 @@ export default function QuizPage() {
           ? error.message
           : "Something went wrong sending your profile to the agent.",
       );
+      setAgentCandidates([]);
     }
   };
 
@@ -995,59 +1121,213 @@ export default function QuizPage() {
               {agentStatus === "loading" ? null : hasRecommendationsReady ? (
                 <div className="space-y-6">
                   <div className="grid gap-5 lg:grid-cols-2">
-                    {recommendations.map((rec, index) => (
-                      <div
-                        key={`${rec.vehicle}-${index}`}
-                        className="flex h-full flex-col justify-between gap-4 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-900/40"
-                      >
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-400">
-                              Recommendation {index + 1}
-                            </p>
-                            <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-100">
-                              Teen Driver AI
-                            </span>
+                    {recommendations.map((rec, index) => {
+                      const candidate = resolveCandidate(rec.vehicle);
+                      const hasImage = Boolean(candidate?.image?.url);
+                      const msrpLabel = formatMsrpRange(candidate);
+
+                      return (
+                        <div
+                          key={`${rec.vehicle}-${index}`}
+                          className="flex h-full flex-col justify-between gap-4 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-900/40"
+                        >
+                          <div className="space-y-3">
+                            {hasImage ? (
+                              <div className="overflow-hidden rounded-2xl border border-white/5 bg-slate-900/50">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={candidate?.image?.url ?? ""}
+                                  alt={candidate?.name ?? rec.vehicle}
+                                  className="h-40 w-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-slate-900/40 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                Vehicle preview coming soon
+                              </div>
+                            )}
+                            {candidate?.image?.attribution ? (
+                              <p className="text-[10px] text-slate-400">
+                                {candidate.image.attribution}
+                              </p>
+                            ) : null}
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-400">
+                                Recommendation {index + 1}
+                              </p>
+                              <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-100">
+                                Teen Driver AI
+                              </span>
+                            </div>
+                            <h3 className="text-xl font-semibold text-white">
+                              {rec.vehicle}
+                            </h3>
                           </div>
-                          <h3 className="text-xl font-semibold text-white">
-                            {rec.vehicle}
-                          </h3>
+                          <div className="space-y-3 text-sm text-slate-200">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Why it fits
+                              </p>
+                              <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                {rec.fitSummary}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Safety highlights
+                              </p>
+                              <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                {rec.safetyHighpoints}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Cost insights
+                              </p>
+                              <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                {rec.costInsights}
+                              </p>
+                              {msrpLabel ? (
+                                <p className="mt-2 text-xs uppercase tracking-wide text-slate-400/80">
+                                  MSRP reference: {msrpLabel}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-50">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">
+                              Next best step
+                            </p>
+                            <p className="mt-1 leading-relaxed">{rec.nextStep}</p>
+                          </div>
                         </div>
-                        <div className="space-y-3 text-sm text-slate-200">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                              Why it fits
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed text-slate-200">
-                              {rec.fitSummary}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                              Safety highlights
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed text-slate-200">
-                              {rec.safetyHighpoints}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                              Cost insights
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed text-slate-200">
-                              {rec.costInsights}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-50">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">
-                            Next best step
+                      );
+                    })}
+                  </div>
+                  {recommendations.length ? (
+                    <div className="mx-auto space-y-4 rounded-3xl border border-white/10 bg-slate-900/60 p-5 lg:max-w-4xl">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-lg font-semibold text-white">Compare your shortlist</h4>
+                          <p className="text-sm text-slate-300">
+                            Scores and specs below reflect how each vehicle matches the priorities you
+                            set for your teen driver.
                           </p>
-                          <p className="mt-1 leading-relaxed">{rec.nextStep}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="overflow-x-auto lg:overflow-visible">
+                        <table className="min-w-full table-fixed divide-y divide-white/10 text-sm text-slate-200">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                Vehicle &amp; focus
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                Match score
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                MSRP &amp; cost
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                Efficiency &amp; driveline
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                Safety highlights
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {recommendations.map((rec, index) => {
+                              const candidate = resolveCandidate(rec.vehicle);
+                              const msrpLabel = formatMsrpRange(candidate);
+                              const fuelLabel = formatFuelEconomy(candidate);
+                              const safetySummary = formatSafetySummary(candidate);
+                              const breakdownList = formatScoreBreakdown(candidate);
+                              const fitTags = candidate?.tags?.fit?.map(humanizeTag) ?? [];
+                              const extrasTags = candidate?.tags?.extras?.map(humanizeTag) ?? [];
+                              const notableSafety = candidate?.safety?.notableFeatures ?? [];
+
+                              return (
+                                <tr key={`${rec.vehicle}-${index}-comparison`} className="align-top">
+                                  <td className="px-4 py-4">
+                                    <div className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
+                                      Rec {index + 1}
+                                    </div>
+                                    <div className="text-base font-semibold text-white">{rec.vehicle}</div>
+                                    {candidate?.bodyStyle || candidate?.drivetrain ? (
+                                      <p className="mt-1 text-xs text-slate-400">
+                                        {[
+                                          candidate?.bodyStyle ? `Body: ${candidate.bodyStyle}` : null,
+                                          candidate?.drivetrain ? `Drivetrain: ${candidate.drivetrain}` : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join(" • ")}
+                                      </p>
+                                    ) : null}
+                                    {fitTags.length ? (
+                                      <p className="mt-1 text-xs text-slate-400">
+                                        Focus: {fitTags.join(", ")}
+                                      </p>
+                                    ) : null}
+                                    {extrasTags.length ? (
+                                      <p className="mt-1 text-xs text-slate-400">
+                                        Feel-good factors: {extrasTags.join(", ")}
+                                      </p>
+                                    ) : null}
+                                    <p className="mt-2 text-xs leading-relaxed text-slate-300">{rec.fitSummary}</p>
+                                  </td>
+                                  <td className="px-4 py-4 align-top">
+                                    <div className="text-lg font-semibold text-white">
+                                      {candidate ? Math.round(candidate.score) : "—"}
+                                    </div>
+                                    {breakdownList.length ? (
+                                      <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                                        {breakdownList.map((item) => (
+                                          <li key={item}>{item}</li>
+                                        ))}
+                                      </ul>
+                                    ) : null}
+                                  </td>
+                                  <td className="px-4 py-4 align-top">
+                                    <p className="font-medium text-white">{msrpLabel ?? "—"}</p>
+                                    <p className="mt-2 text-xs leading-relaxed text-slate-300">{rec.costInsights}</p>
+                                  </td>
+                                  <td className="px-4 py-4 align-top">
+                                    <p className="font-medium text-white">
+                                      {fuelLabel ?? "Efficiency data coming soon"}
+                                    </p>
+                                    {candidate?.highlights?.tech?.length ? (
+                                      <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                        Tech: {candidate.highlights.tech.join(", ")}
+                                      </p>
+                                    ) : null}
+                                  </td>
+                                  <td className="px-4 py-4 align-top">
+                                    <p className="font-medium text-white">
+                                      {safetySummary ?? "Safety ratings pending"}
+                                    </p>
+                                    <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                      {rec.safetyHighpoints}
+                                    </p>
+                                    {notableSafety.length ? (
+                                      <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                                        {notableSafety.slice(0, 2).map((note) => (
+                                          <li key={note}>{note}</li>
+                                        ))}
+                                        {notableSafety.length > 2 ? (
+                                          <li className="text-slate-500">+ more safety notes in detail</li>
+                                        ) : null}
+                                      </ul>
+                                    ) : null}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : null}
                   {agentResponse ? (
                     <details className="rounded-3xl border border-white/10 bg-slate-900/60 p-4 text-slate-200">
                       <summary className="cursor-pointer text-sm font-semibold text-slate-100">

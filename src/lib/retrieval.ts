@@ -64,10 +64,10 @@ function scoreBudget(vehicle: VehicleWithSources, pref?: BudgetPreference): numb
     if (msrpMax <= max - 2000) {
       score += 2;
     }
-  } else if (msrpMax <= max + 2500) {
-    score += 2;
   } else {
-    score -= 6;
+    const overage = msrpMax - max;
+    const stepPenalty = Math.ceil(overage / 2000) * 4;
+    score -= stepPenalty;
   }
 
   if (min > 0) {
@@ -154,7 +154,19 @@ export async function getTopVehicles(
     include: { sources: true },
   });
 
-  const scored: ScoredVehicle[] = vehicles
+  const tolerance = 3000;
+  let filtered = vehicles;
+  if (profile.budget?.max !== undefined && Number.isFinite(profile.budget.max)) {
+    const budgetMax = profile.budget.max;
+    filtered = vehicles.filter(
+      (vehicle) => vehicle.msrpMin <= budgetMax + tolerance,
+    );
+    if (!filtered.length) {
+      filtered = vehicles;
+    }
+  }
+
+  const scored: ScoredVehicle[] = filtered
     .map((vehicle: VehicleWithSources): ScoredVehicle => {
       const { total, breakdown } = scoreVehicle(vehicle, profile);
       return {

@@ -87,12 +87,16 @@ Provide consistent, trustworthy vehicle information that can be referenced by th
 | Phase 3+ | Postgres (Supabase) via Prisma | Enables scoring queries, updates, and integration with feedback. Seeded from the JSON file. |
 | Future | Vector store (pgvector, Pinecone) | Supports semantic retrieval and multi-attribute search. |
 
-### Current Implementation (2025-11-08)
+### Current Implementation (2025-11-09)
 - **Database:** Supabase (managed Postgres)  
 - **ORM:** Prisma (`prisma/schema.prisma`)  
 - **Seed:** `npx prisma db seed` reads `data/vehicles.json` and populates `Vehicle` / `VehicleSource` tables.  
-- **Client:** `src/lib/db.ts` exposes a singleton Prisma client for server-side usage.  
-- **Retrieval helpers:** `src/lib/retrieval.ts` scores and fetches vehicles for the concierge pipeline.
+- **NHTSA enrichment:** `npm run import:nhtsa` updates crash-test scores and recall counts.  
+- **CarQuery enrichment:** `npm run import:carquery [--make=Honda --year=2023 --limit=20 --missing-only]` writes MSRP, drivetrain, fuel data, doors/seats, and trim IDs.  
+- **Pexels imagery:** `npm run import:pexels [--limit=20 --refresh --make=Toyota]` fills `imageUrl` + attribution (requires `PEXELS_API_KEY`).  
+- **Client:** `src/lib/prisma.ts` provides a singleton Prisma client for server-side usage.  
+- **Retrieval helpers:** `src/lib/retrieval.ts` scores and fetches vehicles for the concierge pipeline.  
+- **Preference mapping:** `src/lib/preferences.ts` converts quiz answers into scoring profiles and agent context.
 
 ## Maintenance
 - Document each addition/change in this file (date, reason).
@@ -103,6 +107,10 @@ Provide consistent, trustworthy vehicle information that can be referenced by th
 - [ ] Finalize attribute list (do we need more price bands? interior tech?).
 - [ ] Choose canonical naming for `fitTags` and `extrasTags`.
 - [ ] Decide on target number of vehicles for MVP shortlist (e.g., 25 core entries).
+- [ ] Integrate fuel economy & imagery sources (FuelEconomy.gov, Car imagery APIs).
+- [ ] Add dealer availability lookups (e.g., Marketcheck API) and cache listings per region.
+- [ ] Schedule nightly ingestion jobs (Supabase edge functions / GitHub Actions) once importers are stable.
+- [ ] Expand Pexels script to prefer manufacturer imagery when licensing allows.
 
 Update this doc whenever the dataset schema or sourcing process changes.
 

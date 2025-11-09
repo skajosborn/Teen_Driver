@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "eval:fixture": "tsx scripts/run-fixture.ts"
+    "eval:fixture": "tsx scripts/run-fixture.ts",
+    "import:nhtsa": "tsx scripts/import-nhtsa.ts",
+    "import:carquery": "tsx scripts/import-carquery.ts",
+    "import:pexels": "tsx scripts/import-pexels.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
