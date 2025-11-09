@@ -52,9 +52,7 @@ type SummarizedEntry = {
 const DEFAULT_PRIORITY = 3;
 
 const isQuestionAnswered = (question: Question, response?: Response) => {
-  if (!response) {
-    return question.required === false;
-  }
+  if (!response) return question.required === false;
 
   if (question.type === "single") {
     return Boolean(response.optionId);
@@ -66,10 +64,7 @@ const isQuestionAnswered = (question: Question, response?: Response) => {
   }
 
   if (question.type === "text") {
-    if (question.required === false) {
-      return true;
-    }
-    return Boolean(response.text?.trim());
+    return question.required === false || Boolean(response.text?.trim());
   }
 
   return false;
@@ -121,12 +116,11 @@ const extractRecommendationsFromRaw = (raw: string): ParsedRecommendationPayload
       continue;
     }
     const candidate = raw.slice(firstBrace, i + 1);
-    if (!candidate.includes('"recommendations"')) {
-      continue;
-    }
-    const parsed = attemptParse(candidate);
-    if (parsed) {
-      return parsed;
+    if (candidate.includes('"recommendations"')) {
+      const parsed = attemptParse(candidate);
+      if (parsed) {
+        return parsed;
+      }
     }
   }
 
@@ -428,7 +422,7 @@ export default function QuizPage() {
         return candidateName.includes(lower) || lower.includes(candidateName);
       });
     },
-    [agentCandidates, candidateLookup],
+    [agentCandidates, candidateLookup]
   );
 
   const usdFormatter = useMemo(
@@ -438,7 +432,7 @@ export default function QuizPage() {
         currency: "USD",
         maximumFractionDigits: 0,
       }),
-    [],
+    []
   );
 
   const formatMsrpRange = useCallback(
@@ -453,7 +447,7 @@ export default function QuizPage() {
       }
       return `${usdFormatter.format(min)} – ${usdFormatter.format(max)}`;
     },
-    [usdFormatter],
+    [usdFormatter]
   );
 
   const formatFuelEconomy = useCallback((candidate?: AgentVehicleCandidate | null) => {
@@ -548,7 +542,7 @@ export default function QuizPage() {
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
         throw new Error(
-          errorBody?.error ?? "Unable to generate recommendations right now.",
+          errorBody?.error ?? "Unable to generate recommendations right now."
         );
       }
 
@@ -560,7 +554,7 @@ export default function QuizPage() {
       const raw = data.recommendations;
       if (!raw) {
         setAgentResponse(
-          "Agent completed without returning recommendations. Try again shortly.",
+          "Agent completed without returning recommendations. Try again shortly."
         );
         setRecommendations([]);
         setAgentStatus("success");
@@ -587,7 +581,7 @@ export default function QuizPage() {
                 item?.nextStep ??
                 "No next step provided. Consider reaching out to a local dealer.",
             }))
-            .slice(0, 4),
+            .slice(0, 4)
         );
         setAgentResponse(parsed.json);
       } else {
@@ -602,7 +596,7 @@ export default function QuizPage() {
       setAgentError(
         error instanceof Error
           ? error.message
-          : "Something went wrong sending your profile to the agent.",
+          : "Something went wrong sending your profile to the agent."
       );
       setAgentCandidates([]);
     }
@@ -661,7 +655,7 @@ export default function QuizPage() {
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
         throw new Error(
-          errorBody?.error ?? "Unable to evaluate that vehicle right now.",
+          errorBody?.error ?? "Unable to evaluate that vehicle right now."
         );
       }
 
@@ -671,6 +665,7 @@ export default function QuizPage() {
         totalCompared?: number;
         leaderboard?: AgentVehicleCandidate[];
         yearExact?: boolean | null;
+        availableYears?: Array<number | string>;
         message?: string;
       };
 
@@ -688,7 +683,7 @@ export default function QuizPage() {
         yearExact: typeof data.yearExact === "boolean" ? data.yearExact : null,
         availableYears: Array.isArray(data.availableYears)
           ? data.availableYears
-              .map((value) => {
+              .map((value: number | string | null | undefined) => {
                 if (typeof value === "number") return value;
                 if (typeof value === "string") {
                   const parsed = Number.parseInt(value, 10);
@@ -706,7 +701,7 @@ export default function QuizPage() {
       setLookupError(
         error instanceof Error
           ? error.message
-          : "Unable to evaluate that vehicle right now.",
+          : "Unable to evaluate that vehicle right now."
       );
     }
   };
@@ -740,7 +735,7 @@ export default function QuizPage() {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-400 via-sky-500 to-emerald-400 transition-all"
+                  className="h-full rounded-full bg-linear-to-r from-sky-400 via-sky-500 to-emerald-400 transition-all"
                   style={{ width: `${Math.max(progressPercent, 8)}%` }}
                 />
               </div>
@@ -857,7 +852,7 @@ export default function QuizPage() {
                       onChange={(event) =>
                         handlePriorityChange(
                           currentQuestion.id,
-                          Number.parseInt(event.target.value, 10),
+                          Number.parseInt(event.target.value, 10)
                         )
                       }
                       className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-sky-500"
@@ -1427,4 +1422,3 @@ export default function QuizPage() {
     </div>
   );
 }
-
