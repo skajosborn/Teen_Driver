@@ -6,6 +6,7 @@ import type {
   BodyStyle,
   Drivetrain,
   VehicleDataSource,
+  Prisma,
 } from "@prisma/client";
 
 const CARQUERY_ENDPOINT = "https://www.carqueryapi.com/api/0.3/";
@@ -209,7 +210,7 @@ async function main() {
   const yearFilter = yearArg ? Number.parseInt(yearArg.split("=")[1], 10) : undefined;
   const limit = limitArg ? Number.parseInt(limitArg.split("=")[1], 10) : undefined;
 
-  const where: Parameters<typeof prisma.vehicle.findMany>[0]["where"] = {};
+  const where: Prisma.VehicleWhereInput = {};
   if (makeFilter) {
     where.make = { equals: makeFilter, mode: "insensitive" };
   }

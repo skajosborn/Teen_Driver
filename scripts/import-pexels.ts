@@ -2,6 +2,7 @@ import "dotenv/config";
 import "tsconfig-paths/register";
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 const PEXELS_ENDPOINT = "https://api.pexels.com/v1/search";
@@ -92,7 +93,7 @@ async function main() {
   const makeFilter = makeArg ? makeArg.split("=")[1] : undefined;
   const modelFilter = modelArg ? modelArg.split("=")[1] : undefined;
 
-  const where: Parameters<typeof prisma.vehicle.findMany>[0]["where"] = {};
+  const where: Prisma.VehicleWhereInput = {};
   if (!refresh) {
     where.imageUrl = null;
   }

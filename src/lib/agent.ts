@@ -62,6 +62,7 @@ export type AgentRequestPayload = {
   metadata?: {
     submittedAt?: string;
     sessionId?: string;
+    [key: string]: unknown;
   };
 };
 
@@ -82,6 +83,18 @@ const ensureClient = () => {
 };
 
 const defaultModel = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+
+function isOutputJsonSchema(
+  content: unknown,
+): content is { type: "output_json_schema"; output: unknown } {
+  return (
+    typeof content === "object" &&
+    content !== null &&
+    "type" in content &&
+    (content as { type?: unknown }).type === "output_json_schema" &&
+    "output" in content
+  );
+}
 
 export async function generateRecommendations(
   payload: AgentRequestPayload,
@@ -128,15 +141,16 @@ export async function generateRecommendations(
         for (const content of item.content ?? []) {
           if (content.type === "output_text") {
             segments.push(content.text);
-          } else if (content.type === "output_json_schema") {
+          } else if (isOutputJsonSchema(content)) {
             try {
-              segments.push(JSON.stringify(content.output, null, 2));
+              const jsonContent = content as { output: unknown };
+              segments.push(JSON.stringify(jsonContent.output, null, 2));
             } catch {
               // ignore parsing issues, fallback below
             }
           }
         }
-      } else if (item.type === "output_text") {
+      } else if ("text" in item && typeof item.text === "string") {
         segments.push(item.text);
       }
     }
