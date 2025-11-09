@@ -1,8 +1,94 @@
+'use client';
+
+import { useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import HeroQuizPreview from "@/components/HeroQuizPreview";
+import HeroQuizPreview, {
+  type HeroStructuredPreference,
+  type HeroSummaryEntry,
+} from "@/components/HeroQuizPreview";
+import type { AgentVehicleCandidate } from "@/lib/agent";
+
+type RecommendationItem = {
+  vehicle?: string;
+  fitSummary?: string;
+  safetyHighpoints?: string;
+  costInsights?: string;
+  nextStep?: string;
+};
+
+type ParsedRecommendationSuccess = {
+  json: string;
+  items: RecommendationItem[];
+};
+
+type ParsedRecommendationPayload = ParsedRecommendationSuccess | null;
+
+const extractRecommendationsFromRaw = (raw: string): ParsedRecommendationPayload => {
+  const attemptParse = (candidate: string): ParsedRecommendationPayload => {
+    try {
+      const parsed = JSON.parse(candidate) as {
+        recommendations?: RecommendationItem[];
+      };
+      if (Array.isArray(parsed.recommendations)) {
+        return {
+          json: JSON.stringify({ recommendations: parsed.recommendations }, null, 2),
+          items: parsed.recommendations,
+        };
+      }
+    } catch {
+      // ignore, handled by caller
+    }
+    return null;
+  };
+
+  const maybeDirect = attemptParse(raw);
+  if (maybeDirect) return maybeDirect;
+
+  const firstBrace = raw.indexOf("{");
+  if (firstBrace === -1) {
+    return null;
+  }
+
+  for (let i = raw.length - 1; i >= firstBrace; i -= 1) {
+    if (raw[i] !== "}") {
+      continue;
+    }
+    const candidate = raw.slice(firstBrace, i + 1);
+    if (candidate.includes('"recommendations"')) {
+      const parsed = attemptParse(candidate);
+      if (parsed) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+};
+
+const hasRecommendations = (
+  value: ParsedRecommendationPayload,
+): value is ParsedRecommendationSuccess =>
+  Boolean(value && Array.isArray(value.items));
+
+type LandingRecommendation = {
+  vehicle: string;
+  fitSummary: string;
+  safetyHighpoints: string;
+  costInsights: string;
+  nextStep: string;
+};
 
 export default function Home() {
+  const [heroSummary, setHeroSummary] = useState<HeroSummaryEntry[]>([]);
+  const [heroRecommendations, setHeroRecommendations] = useState<LandingRecommendation[]>([]);
+  const [heroCandidates, setHeroCandidates] = useState<AgentVehicleCandidate[]>([]);
+  const [heroAgentResponse, setHeroAgentResponse] = useState<string | null>(null);
+  const [heroAgentStatus, setHeroAgentStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [heroAgentError, setHeroAgentError] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+
   const features = [
     {
       title: "Safety-First Filters",
@@ -57,6 +143,211 @@ export default function Home() {
     },
   ];
 
+  const heroCandidateLookup = useMemo(() => {
+    const map = new Map<string, AgentVehicleCandidate>();
+    heroCandidates.forEach((candidate) => {
+      map.set(candidate.name.toLowerCase(), candidate);
+    });
+    return map;
+  }, [heroCandidates]);
+
+  const resolveCandidate = useCallback(
+    (vehicleName: string) => {
+      const lower = vehicleName.toLowerCase();
+      if (heroCandidateLookup.has(lower)) {
+        return heroCandidateLookup.get(lower);
+      }
+      return heroCandidates.find((candidate) => {
+        const candidateName = candidate.name.toLowerCase();
+        return candidateName.includes(lower) || lower.includes(candidateName);
+      });
+    },
+    [heroCandidateLookup, heroCandidates],
+  );
+
+  const usdFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }),
+    [],
+  );
+
+  const formatMsrpRange = useCallback(
+    (candidate?: AgentVehicleCandidate | null) => {
+      if (!candidate?.msrpRange) return null;
+      const { min, max } = candidate.msrpRange;
+      if (!Number.isFinite(min) || !Number.isFinite(max) || max <= 0) {
+        return null;
+      }
+      if (min === max) {
+        return usdFormatter.format(min);
+      }
+      return `${usdFormatter.format(min)} – ${usdFormatter.format(max)}`;
+    },
+    [usdFormatter],
+  );
+
+  const formatFuelEconomy = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    const city = candidate?.fuelEconomy?.city ?? null;
+    const highway = candidate?.fuelEconomy?.highway ?? null;
+    const combined = candidate?.fuelEconomy?.combined ?? null;
+
+    const segments: string[] = [];
+    if (city && highway) {
+      segments.push(`${city}/${highway} mpg (city/hwy)`);
+    } else if (city) {
+      segments.push(`${city} mpg city`);
+    } else if (highway) {
+      segments.push(`${highway} mpg hwy`);
+    }
+    if (combined && !segments.some((segment) => segment.includes("combined"))) {
+      segments.push(`${combined} mpg combined`);
+    }
+
+    return segments.length ? segments.join(" • ") : null;
+  }, []);
+
+  const formatSafetySummary = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    if (!candidate) return null;
+    const badges: string[] = [];
+    const stars = candidate.safety?.nhtsaOverall;
+    if (stars) {
+      badges.push(`${stars}★ NHTSA`);
+    }
+    if (candidate.safety?.iihsTopSafetyPick) {
+      badges.push("IIHS Top Safety Pick");
+    }
+    return badges.length ? badges.join(" • ") : null;
+  }, []);
+
+  const formatScoreBreakdown = useCallback((candidate?: AgentVehicleCandidate | null) => {
+    if (!candidate?.scoreBreakdown) return [];
+    return (["budget", "safety", "usage", "extras"] as const)
+      .map((key) => {
+        const value = candidate.scoreBreakdown[key];
+        if (typeof value !== "number" || value === 0) return null;
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        const rounded = Math.round(value);
+        const prefix = rounded > 0 ? "+" : "";
+        return `${label}: ${prefix}${rounded}`;
+      })
+      .filter(Boolean) as string[];
+  }, []);
+
+  const handleHeroSubmit = useCallback(
+    async ({
+      preferences,
+      summary,
+    }: {
+      preferences: HeroStructuredPreference[];
+      summary: HeroSummaryEntry[];
+    }) => {
+      const cleanedPreferences = preferences.map((preference) => ({
+        questionId: preference.questionId,
+        label: preference.label,
+        priority: preference.priority,
+        type: preference.type,
+        selectedValues: preference.selectedValues,
+        notes: preference.notes,
+      }));
+
+      const metadata = {
+        submittedAt: new Date().toISOString(),
+        sessionId:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2),
+        source: "landing-hero",
+      };
+
+      setHeroSummary(summary);
+      setHeroAgentStatus("loading");
+      setHeroAgentError(null);
+      setHeroAgentResponse(null);
+      setHeroRecommendations([]);
+
+      try {
+        const response = await fetch("/api/recommendations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            preferences: cleanedPreferences,
+            metadata,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(
+            errorBody?.error ?? "Unable to generate recommendations right now.",
+          );
+        }
+
+        const data = (await response.json()) as {
+          recommendations?: string;
+          candidates?: AgentVehicleCandidate[];
+        };
+        setHeroCandidates(data.candidates ?? []);
+
+        const raw = data.recommendations;
+        if (!raw) {
+          setHeroAgentResponse(
+            "Agent completed without returning recommendations. Try again shortly.",
+          );
+          setHeroRecommendations([]);
+          setHeroAgentStatus("success");
+          return;
+        }
+
+        const parsed = extractRecommendationsFromRaw(raw);
+
+        if (hasRecommendations(parsed)) {
+          const items = parsed.items ?? [];
+          setHeroRecommendations(
+            items
+              .map((item) => ({
+                vehicle: item?.vehicle ?? "Vehicle TBD",
+                fitSummary:
+                  item?.fitSummary ?? "No fit summary returned. Review manually.",
+                safetyHighpoints:
+                  item?.safetyHighpoints ??
+                  "No safety highlights provided. Double-check ratings.",
+                costInsights:
+                  item?.costInsights ??
+                  "No cost insights provided. Review pricing independently.",
+                nextStep:
+                  item?.nextStep ??
+                  "No next step provided. Consider reaching out to a local dealer.",
+              }))
+              .slice(0, 4),
+          );
+          setHeroAgentResponse(parsed.json);
+        } else {
+          setHeroRecommendations([]);
+          setHeroAgentResponse(raw);
+        }
+
+        setHeroAgentStatus("success");
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 200);
+      } catch (error) {
+        setHeroAgentStatus("error");
+        setHeroAgentError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong sending your profile to the agent.",
+        );
+      }
+    },
+    [],
+  );
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="relative overflow-hidden">
@@ -87,12 +378,12 @@ export default function Home() {
             <a className="transition-colors hover:text-white" href="#faq">
               FAQ
             </a>
-            <Link
+            <a
               className="rounded-full bg-white px-4 py-2 font-semibold text-slate-950 transition hover:bg-slate-100"
-              href="/quiz"
+              href="#hero-quiz"
             >
               Get started
-            </Link>
+            </a>
           </div>
         </header>
 
@@ -118,12 +409,12 @@ export default function Home() {
               </div>
             </div>
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <Link
-                href="/quiz"
+              <a
+                href="#hero-quiz"
                 className="rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/40 transition hover:bg-sky-400 hover:shadow-sky-400/40"
               >
                 Build my teen&apos;s shortlist
-              </Link>
+              </a>
               <a
                 href="#how-it-works"
                 className="text-sm font-semibold text-slate-200 transition hover:text-white"
@@ -134,9 +425,315 @@ export default function Home() {
           </section>
 
           <div className="w-full max-w-md shrink-0">
-            <HeroQuizPreview />
+            <HeroQuizPreview
+              onSubmit={handleHeroSubmit}
+              submitting={heroAgentStatus === "loading"}
+              status={heroAgentStatus}
+              error={heroAgentError}
+            />
           </div>
         </main>
+
+        {heroAgentStatus !== "idle" ? (
+          <section
+            ref={resultsRef}
+            className="mx-auto mb-20 max-w-6xl px-6 sm:px-10"
+          >
+            <div className="space-y-8 rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-lg shadow-slate-900/40">
+              <div className="space-y-3">
+                <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+                  Summary ready
+                </p>
+                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                  Your family&apos;s Teen Driver blueprint
+                </h2>
+                <p className="text-sm text-slate-300">
+                  We translated your answers into a prioritized profile so the concierge can
+                  rank vehicles against the factors that matter most.
+                </p>
+              </div>
+
+              {heroSummary.length ? (
+                <div className="grid gap-5 lg:grid-cols-3">
+                  {heroSummary.map((item) => (
+                    <div
+                      key={item.uniqueId}
+                      className="space-y-3 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-sm shadow-slate-900/40"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-sky-400">
+                          {item.question}
+                        </p>
+                        <p className="text-base font-semibold text-white">{item.choice}</p>
+                      </div>
+                      <p className="text-sm text-slate-300">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="space-y-4 rounded-3xl border border-sky-400/30 bg-sky-500/10 p-6 text-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">Teen Driver shortlist</h3>
+                    <p className="text-sm text-slate-200/80">
+                      {heroAgentStatus === "loading"
+                        ? "Gathering live inventory, insurance data, and negotiation insights…"
+                        : heroAgentStatus === "success" && heroRecommendations.length
+                        ? "Here’s what the concierge recommends right now."
+                        : "Adjust answers anytime to refresh the shortlist."}
+                    </p>
+                  </div>
+                </div>
+
+                {heroAgentStatus === "error" && heroAgentError ? (
+                  <p className="rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                    {heroAgentError}
+                  </p>
+                ) : null}
+
+                {heroAgentStatus === "loading" ? (
+                  <p className="text-sm text-slate-200/80">
+                    Working on it… we’re matching vehicles to your must-haves.
+                  </p>
+                ) : heroAgentStatus === "success" && heroRecommendations.length ? (
+                  <div className="space-y-6">
+                    <div className="grid gap-5 lg:grid-cols-2">
+                      {heroRecommendations.map((rec, index) => {
+                        const candidate = resolveCandidate(rec.vehicle);
+                        const hasImage = Boolean(candidate?.image?.url);
+                        const msrpLabel = formatMsrpRange(candidate);
+
+                        return (
+                          <div
+                            key={`${rec.vehicle}-${index}`}
+                            className="flex h-full flex-col justify-between gap-4 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-900/40"
+                          >
+                            <div className="space-y-3">
+                              {hasImage ? (
+                                <div className="overflow-hidden rounded-2xl border border-white/5 bg-slate-900/50">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={candidate?.image?.url ?? ""}
+                                    alt={candidate?.name ?? rec.vehicle}
+                                    className="h-40 w-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-slate-900/40 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                  Vehicle preview coming soon
+                                </div>
+                              )}
+                              {candidate?.image?.attribution ? (
+                                <p className="text-[10px] text-slate-400">
+                                  {candidate.image.attribution}
+                                </p>
+                              ) : null}
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-400">
+                                  Recommendation {index + 1}
+                                </p>
+                                <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-100">
+                                  Teen Driver AI
+                                </span>
+                              </div>
+                              <h3 className="text-xl font-semibold text-white">{rec.vehicle}</h3>
+                            </div>
+                            <div className="space-y-3 text-sm text-slate-200">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                  Why it fits
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                  {rec.fitSummary}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                  Safety highlights
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                  {rec.safetyHighpoints}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                  Cost insights
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-slate-200">
+                                  {rec.costInsights}
+                                </p>
+                                {msrpLabel ? (
+                                  <p className="mt-2 text-xs uppercase tracking-wide text-slate-400/80">
+                                    MSRP reference: {msrpLabel}
+                                  </p>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-50">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">
+                                Next best step
+                              </p>
+                              <p className="mt-1 leading-relaxed">{rec.nextStep}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {heroRecommendations.length ? (
+                      <div className="mx-auto space-y-4 rounded-3xl border border-white/10 bg-slate-900/60 p-5 lg:max-w-4xl">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-lg font-semibold text-white">
+                              Compare your shortlist
+                            </h4>
+                            <p className="text-sm text-slate-300">
+                              Scores and specs reflect how each vehicle matches the priorities you set.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto lg:overflow-visible">
+                          <table className="min-w-full table-fixed divide-y divide-white/10 text-sm text-slate-200">
+                            <thead>
+                              <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                  Vehicle &amp; focus
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                  Match score
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                  MSRP &amp; cost
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                  Efficiency &amp; driveline
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
+                                  Safety highlights
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                              {heroRecommendations.map((rec, index) => {
+                                const candidate = resolveCandidate(rec.vehicle);
+                                const msrpLabel = formatMsrpRange(candidate);
+                                const fuelLabel = formatFuelEconomy(candidate);
+                                const safetySummary = formatSafetySummary(candidate);
+                                const breakdownList = formatScoreBreakdown(candidate);
+                                const fitTags = candidate?.tags?.fit ?? [];
+                                const extrasTags = candidate?.tags?.extras ?? [];
+                                const notableSafety = candidate?.safety?.notableFeatures ?? [];
+
+                                return (
+                                  <tr key={`${rec.vehicle}-${index}-comparison`} className="align-top">
+                                    <td className="px-4 py-4">
+                                      <div className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
+                                        Rec {index + 1}
+                                      </div>
+                                      <div className="text-base font-semibold text-white">
+                                        {rec.vehicle}
+                                      </div>
+                                      {(candidate?.bodyStyle || candidate?.drivetrain) && (
+                                        <p className="mt-1 text-xs text-slate-400">
+                                          {[
+                                            candidate?.bodyStyle ? `Body: ${candidate.bodyStyle}` : null,
+                                            candidate?.drivetrain ? `Drivetrain: ${candidate.drivetrain}` : null,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" • ")}
+                                        </p>
+                                      )}
+                                      {fitTags.length ? (
+                                        <p className="mt-1 text-xs text-slate-400">
+                                          Focus: {fitTags.join(", ")}
+                                        </p>
+                                      ) : null}
+                                      {extrasTags.length ? (
+                                        <p className="mt-1 text-xs text-slate-400">
+                                          Feel-good factors: {extrasTags.join(", ")}
+                                        </p>
+                                      ) : null}
+                                      <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                        {rec.fitSummary}
+                                      </p>
+                                    </td>
+                                    <td className="px-4 py-4 align-top">
+                                      <div className="text-lg font-semibold text-white">
+                                        {candidate ? Math.round(candidate.score) : "—"}
+                                      </div>
+                                      {breakdownList.length ? (
+                                        <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                                          {breakdownList.map((item) => (
+                                            <li key={item}>{item}</li>
+                                          ))}
+                                        </ul>
+                                      ) : null}
+                                    </td>
+                                    <td className="px-4 py-4 align-top">
+                                      <p className="font-medium text-white">{msrpLabel ?? "—"}</p>
+                                      <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                        {rec.costInsights}
+                                      </p>
+                                    </td>
+                                    <td className="px-4 py-4 align-top">
+                                      <p className="font-medium text-white">
+                                        {fuelLabel ?? "Efficiency data coming soon"}
+                                      </p>
+                                      {candidate?.highlights?.tech?.length ? (
+                                        <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                          Tech: {candidate.highlights.tech.join(", ")}
+                                        </p>
+                                      ) : null}
+                                    </td>
+                                    <td className="px-4 py-4 align-top">
+                                      <p className="font-medium text-white">
+                                        {safetySummary ?? "Safety ratings pending"}
+                                      </p>
+                                      <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                                        {rec.safetyHighpoints}
+                                      </p>
+                                      {notableSafety.length ? (
+                                        <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                                          {notableSafety.slice(0, 2).map((note) => (
+                                            <li key={note}>{note}</li>
+                                          ))}
+                                          {notableSafety.length > 2 ? (
+                                            <li className="text-slate-500">+ more safety notes</li>
+                                          ) : null}
+                                        </ul>
+                                      ) : null}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {heroAgentResponse ? (
+                      <details className="rounded-3xl border border-white/10 bg-slate-900/60 p-4 text-slate-200">
+                        <summary className="cursor-pointer text-sm font-semibold text-slate-100">
+                          View raw agent payload
+                        </summary>
+                        <pre className="mt-3 max-h-[320px] overflow-auto rounded-2xl bg-slate-950/80 p-4 text-sm text-sky-100">
+                          {heroAgentResponse}
+                        </pre>
+                      </details>
+                    ) : null}
+                  </div>
+                ) : heroAgentStatus === "success" ? (
+                  <p className="text-sm text-slate-200/80">
+                    Agent completed, but no recommendations were returned. Try refining your
+                    answers and run the concierge again.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section
           id="features"
