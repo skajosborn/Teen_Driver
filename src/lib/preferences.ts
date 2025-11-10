@@ -12,6 +12,125 @@ export type IncomingPreference = Pick<
 
 const DEFAULT_PRIORITY = 3;
 
+const MAKE_ALIAS_MAP = new Map<string, string>([
+  ["acura", "acura"],
+  ["alfa", "alfa romeo"],
+  ["alfaromeo", "alfa romeo"],
+  ["aston", "aston martin"],
+  ["astonmartin", "aston martin"],
+  ["audi", "audi"],
+  ["bentley", "bentley"],
+  ["bmw", "bmw"],
+  ["buick", "buick"],
+  ["cadillac", "cadillac"],
+  ["chevy", "chevrolet"],
+  ["chevrolet", "chevrolet"],
+  ["chrysler", "chrysler"],
+  ["dodge", "dodge"],
+  ["ferrari", "ferrari"],
+  ["fiat", "fiat"],
+  ["ford", "ford"],
+  ["gmc", "gmc"],
+  ["genesis", "genesis"],
+  ["honda", "honda"],
+  ["hummer", "hummer"],
+  ["hyundai", "hyundai"],
+  ["infiniti", "infiniti"],
+  ["jaguar", "jaguar"],
+  ["jeep", "jeep"],
+  ["kia", "kia"],
+  ["lamborghini", "lamborghini"],
+  ["landrover", "land rover"],
+  ["land", "land rover"],
+  ["lexus", "lexus"],
+  ["lincoln", "lincoln"],
+  ["lotus", "lotus"],
+  ["lucid", "lucid"],
+  ["maserati", "maserati"],
+  ["mazda", "mazda"],
+  ["mercedes", "mercedes-benz"],
+  ["mercedesbenz", "mercedes-benz"],
+  ["benz", "mercedes-benz"],
+  ["mini", "mini"],
+  ["mitsubishi", "mitsubishi"],
+  ["nissan", "nissan"],
+  ["pontiac", "pontiac"],
+  ["porsche", "porsche"],
+  ["ram", "ram"],
+  ["rivian", "rivian"],
+  ["rolls", "rolls-royce"],
+  ["rollsroyce", "rolls-royce"],
+  ["saab", "saab"],
+  ["saturn", "saturn"],
+  ["scion", "scion"],
+  ["smart", "smart"],
+  ["subaru", "subaru"],
+  ["suzuki", "suzuki"],
+  ["tesla", "tesla"],
+  ["toyota", "toyota"],
+  ["volkswagen", "volkswagen"],
+  ["vw", "volkswagen"],
+  ["volvo", "volvo"],
+]);
+
+function normaliseMake(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const cleaned = value.toLowerCase().replace(/[^a-z0-9]/g, "");
+  for (const [alias, canonical] of MAKE_ALIAS_MAP.entries()) {
+    if (cleaned === alias) {
+      return canonical;
+    }
+  }
+  return value.trim().toLowerCase();
+}
+
+function imageHasConflictingMake(
+  vehicleMake: string,
+  imageUrl?: string | null,
+  imageAttribution?: string | null,
+): boolean {
+  const targetMake = normaliseMake(vehicleMake);
+  if (!targetMake) return false;
+
+  const haystack = [imageUrl, imageAttribution]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (!haystack) return false;
+
+  const detectedMakes = new Set<string>();
+  for (const [alias, canonical] of MAKE_ALIAS_MAP.entries()) {
+    if (haystack.includes(alias)) {
+      detectedMakes.add(canonical);
+    }
+  }
+
+  if (!detectedMakes.size) {
+    return false;
+  }
+
+  // Allow if we only detected the target make.
+  if (detectedMakes.size === 1 && detectedMakes.has(targetMake)) {
+    return false;
+  }
+
+  // Ignore common multi-word combos like "mercedes benz".
+  if (
+    detectedMakes.size === 2 &&
+    detectedMakes.has("mercedes-benz") &&
+    detectedMakes.has("benz")
+  ) {
+    detectedMakes.delete("benz");
+  }
+
+  if (detectedMakes.has(targetMake)) {
+    detectedMakes.delete(targetMake);
+  }
+
+  return detectedMakes.size > 0;
+}
+
 type FitTagValue =
   | "DAILY_COMMUTE"
   | "SHARED_FAMILY"
@@ -224,7 +343,8 @@ export function toAgentVehicleCandidate(vehicle: ScoredVehicle): AgentVehicleCan
       teenFriendly: vehicle.teenFriendlyFactors.slice(0, 3),
       maintenance: vehicle.maintenanceNotes.slice(0, 2),
     },
-    image: vehicle.imageUrl
+    image:
+      vehicle.imageUrl && !imageHasConflictingMake(vehicle.make, vehicle.imageUrl, vehicle.imageAttribution)
       ? {
           url: vehicle.imageUrl,
           attribution: vehicle.imageAttribution ?? undefined,
