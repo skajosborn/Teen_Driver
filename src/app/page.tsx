@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import HeroQuizPreview, {
   type HeroStructuredPreference,
@@ -357,7 +358,7 @@ export default function Home() {
         </div>
 
         <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 text-inherit no-underline">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/90 text-lg font-semibold text-slate-950 shadow-lg shadow-sky-500/30">
               TD
             </div>
@@ -367,7 +368,7 @@ export default function Home() {
                 Confidence for parents. Excitement for teens.
               </p>
             </div>
-          </div>
+          </Link>
           <div className="hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
             <a className="transition-colors hover:text-white" href="#features">
               Features
@@ -776,7 +777,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <div className="grid gap-6 rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900/80 via-slate-900 to-slate-900/70 p-8 sm:grid-cols-3">
+        <div className="grid gap-6 rounded-3xl border border-white/10 bg-linear-to-r from-slate-900/80 via-slate-900 to-slate-900/70 p-8 sm:grid-cols-3">
           <div>
             <p className="text-4xl font-semibold text-white">92%</p>
             <p className="mt-2 text-sm text-slate-300">
